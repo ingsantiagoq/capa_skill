@@ -1,0 +1,20 @@
+{
+  "parentAdr": "{{ADR}}",
+  "objetivo": "{{OBJETIVO}}",
+  "title": "{{TITLE}}",
+  "lifecycle": "wip",
+  "frontend": false,
+  "requiresSkills": [],
+  "status": {
+    "decision": "PROPUESTA",
+    "implementation": "NONE",
+    "verified_against": null
+  },
+  "graph": "{{GRAPHREL}}",
+  "route": [],
+  "slices": [],
+  "anchors": [],
+  "evidence": [],
+  "decisions": [],
+  "dimensions": ["CONTEXTO", "ALCANCE", "PROGRESO", "ASEGURAMIENTO", "PODER"]
+}

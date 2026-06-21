@@ -1,0 +1,25 @@
+{
+  "name": "@btw/capa-cli",
+  "version": "0.1.0",
+  "description": "CAPA — Contexto · Alcance · Progreso · Aseguramiento · Poder. Dossier por ADR anclado a código (graphify), con doctor anti-teatro. Replicable entre proyectos.",
+  "bin": {
+    "capa": "bin/capa.js"
+  },
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test/smoke.js"
+  },
+  "peerDependencies": {
+    "graphify": ">=0.8"
+  },
+  "peerDependenciesMeta": {
+    "graphify": { "optional": false }
+  },
+  "files": ["bin", "lib", "templates", "skill", "platform"],
+  "keywords": ["capa", "adr", "documentation", "graphify", "claude-code", "anti-theater"],
+  "license": "UNLICENSED",
+  "private": true
+}
