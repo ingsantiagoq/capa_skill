@@ -39,7 +39,7 @@ assert.match(closed, /CAPA PBI CLOSED/);
 assert.match(closed, /Smoke PBI closed/);
 
 const backlog = run(['backlog']);
-assert.doesNotMatch(backlog, /Close PBI smoke/);
+assert.match(backlog, /\[done\][^\n]*Close PBI smoke/);
 
 cleanDb();
 console.log('Close PBI smoke test OK');
