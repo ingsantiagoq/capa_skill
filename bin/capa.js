@@ -21,6 +21,7 @@ const tests = require('../lib/runtime/tests');
 const reviews = require('../lib/runtime/reviews');
 const closure = require('../lib/runtime/closure');
 const sprint = require('../lib/runtime/sprint');
+const api = require('../lib/runtime/api');
 
 const pkg = require('../package.json');
 
@@ -263,6 +264,12 @@ function runtimeClose({ flags, pos }) {
   process.exit(1);
 }
 
+function runtimeApi({ flags }) {
+  const port = Number(flags.port || process.env.CAPA_API_PORT || 4739);
+  const host = flags.host || process.env.CAPA_API_HOST || '127.0.0.1';
+  api.run({ root: process.cwd(), port, host });
+}
+
 function help() {
   console.log(`${c.bold('capa')} v${pkg.version} — Contexto · Alcance · Progreso · Aseguramiento
 
@@ -281,6 +288,7 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('review')} <add|list>              registra code review del PBI
   ${c.cyan('cerrar')} pbi                     cierra PBI con gates mínimos
   ${c.cyan('cerrar')} sprint                  compacta sprint desde SQLite
+  ${c.cyan('api')} [--port 4739]              expone API local para dashboard/frontend
 
 ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
@@ -313,6 +321,7 @@ function main() {
     case 'test': return runtimeTest({ flags, pos });
     case 'review': return runtimeReview({ flags, pos });
     case 'cerrar': case 'close': return runtimeClose({ flags, pos });
+    case 'api': return runtimeApi({ flags });
     case 'init': return init({ root: process.cwd(), dossierDir: flags.dir || 'capa' });
     case 'vision': { const { root, config } = loadConfig(); return vision({ root, config, adr: pos[0], title: flags.title, slug: flags.slug }); }
     case 'new': { const { root, config } = loadConfig(); return newCapa({ root, config, adr: pos[0], objetivo: flags.objetivo, title: flags.title, route: flags.route, frontend: !!flags.frontend }); }
