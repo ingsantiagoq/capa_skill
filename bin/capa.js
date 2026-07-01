@@ -13,6 +13,7 @@ const { runDashboard } = require('../lib/dashboard');
 const { install, uninstall } = require('../lib/install');
 const { runPanel } = require('../lib/panel');
 const runtime = require('../lib/runtime/items');
+const guard = require('../lib/runtime/guard');
 
 const pkg = require('../package.json');
 
@@ -110,6 +111,14 @@ function runtimeBlock({ pos }) {
   console.log(c.red(`PBI bloqueado #${out.item.id}: ${reason}`));
 }
 
+function runtimeGuard({ flags, pos }) {
+  const action = pos[0];
+  if (!action) { console.error(c.red('uso: capa guard <edit|write|delete|close|done> [--file ruta] [--auto-fix]')); process.exit(1); }
+  const result = guard.evaluate({ root: process.cwd(), action, file: flags.file, autoFix: Boolean(flags['auto-fix'] || flags.autofix) });
+  guard.print(result);
+  if (!result.allowed) process.exit(result.code || 2);
+}
+
 function help() {
   console.log(`${c.bold('capa')} v${pkg.version} — Contexto · Alcance · Progreso · Aseguramiento
 
@@ -120,6 +129,7 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('completar')} [--status ok]        registra cierre de transición
   ${c.cyan('bloquear')} "motivo"              bloquea PBI activo
   ${c.cyan('backlog')}                        lista backlog local
+  ${c.cyan('guard')} <acción> [--file ruta]   valida si una acción está permitida
 
 ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
@@ -145,6 +155,7 @@ function main() {
     case 'completar': case 'complete': return runtimeComplete({ flags });
     case 'bloquear': case 'block': return runtimeBlock({ pos });
     case 'backlog': return runtimeBacklog();
+    case 'guard': return runtimeGuard({ flags, pos });
     case 'init': return init({ root: process.cwd(), dossierDir: flags.dir || 'capa' });
     case 'vision': { const { root, config } = loadConfig(); return vision({ root, config, adr: pos[0], title: flags.title, slug: flags.slug }); }
     case 'new': { const { root, config } = loadConfig(); return newCapa({ root, config, adr: pos[0], objetivo: flags.objetivo, title: flags.title, route: flags.route, frontend: !!flags.frontend }); }
