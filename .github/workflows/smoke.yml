@@ -47,3 +47,6 @@ jobs:
 
       - name: Run CAPA local API smoke test
         run: node test/smoke-api.js
+
+      - name: Run CAPA dashboard smoke test
+        run: node test/smoke-dashboard.js
