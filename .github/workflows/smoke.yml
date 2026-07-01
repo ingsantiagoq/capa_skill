@@ -28,7 +28,19 @@ jobs:
         run: npm run test:guard
 
       - name: Run Claude hook smoke test
-        run: node test/smoke-hook.js
+        run: npm run test:hook
 
       - name: Run CAPA scope smoke test
         run: npm run test:scope
+
+      - name: Run CAPA evidence smoke test
+        run: npm run test:evidence
+
+      - name: Run CAPA test/review smoke test
+        run: npm run test:review
+
+      - name: Run CAPA close PBI smoke test
+        run: npm run test:close
+
+      - name: Run CAPA close sprint smoke test
+        run: npm run test:sprint

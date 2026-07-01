@@ -10,14 +10,15 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js",
+    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js",
     "test:db": "node test/smoke-db-first.js",
     "test:guard": "node test/smoke-guard.js",
     "test:hook": "node test/smoke-hook.js",
     "test:scope": "node test/smoke-scope.js",
     "test:evidence": "node test/smoke-evidence.js",
     "test:review": "node test/smoke-test-review.js",
-    "test:close": "node test/smoke-close-pbi.js"
+    "test:close": "node test/smoke-close-pbi.js",
+    "test:sprint": "node test/smoke-close-sprint.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
