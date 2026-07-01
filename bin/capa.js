@@ -14,6 +14,8 @@ const { install, uninstall } = require('../lib/install');
 const { runPanel } = require('../lib/panel');
 const runtime = require('../lib/runtime/items');
 const guard = require('../lib/runtime/guard');
+const scope = require('../lib/runtime/scope');
+const findings = require('../lib/runtime/findings');
 
 const pkg = require('../package.json');
 
@@ -119,6 +121,57 @@ function runtimeGuard({ flags, pos }) {
   if (!result.allowed) process.exit(result.code || 2);
 }
 
+function runtimeScope({ flags, pos }) {
+  const sub = pos[0];
+  if (sub === 'add') {
+    const allowedPath = pos[1];
+    if (!allowedPath) { console.error(c.red('uso: capa scope add <ruta> [--reason "motivo"]')); process.exit(1); }
+    const out = scope.add({ root: process.cwd(), allowedPath, reason: flags.reason || null });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.green(`Scope agregado al PBI #${out.item.id}: ${out.allowedPath}`));
+    if (out.reason) console.log(`Motivo: ${out.reason}`);
+    return;
+  }
+  if (sub === 'list') {
+    const out = scope.list({ root: process.cwd() });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    if (!out.rows.length) return console.log('(scope vacío)');
+    for (const row of out.rows) console.log(`#${row.id} ${row.allowed_path}${row.reason ? ` :: ${row.reason}` : ''}`);
+    return;
+  }
+  console.error(c.red('uso: capa scope <add|list>'));
+  process.exit(1);
+}
+
+function runtimeFinding({ flags, pos }) {
+  const sub = pos[0];
+  if (sub === 'add') {
+    const title = pos.slice(1).join(' ').trim();
+    if (!title) { console.error(c.red('uso: capa finding add "titulo" [--description "..."] [--outside] [--action record]')); process.exit(1); }
+    const out = findings.add({
+      root: process.cwd(),
+      title,
+      description: flags.description || null,
+      belongs: !Boolean(flags.outside),
+      action: flags.action || 'record',
+    });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.green(`Finding #${out.findingId} registrado en PBI #${out.item.id}: ${out.title}`));
+    console.log(`Pertenece al PBI actual: ${out.belongs ? 'SI' : 'NO'}`);
+    console.log(`Acción: ${out.action}`);
+    return;
+  }
+  if (sub === 'list') {
+    const out = findings.list({ root: process.cwd() });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    if (!out.rows.length) return console.log('(sin hallazgos)');
+    for (const row of out.rows) console.log(`#${row.id} [${row.belongs_to_current_item ? 'IN' : 'OUT'}] ${row.title} :: ${row.action}`);
+    return;
+  }
+  console.error(c.red('uso: capa finding <add|list>'));
+  process.exit(1);
+}
+
 function help() {
   console.log(`${c.bold('capa')} v${pkg.version} — Contexto · Alcance · Progreso · Aseguramiento
 
@@ -130,6 +183,8 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('bloquear')} "motivo"              bloquea PBI activo
   ${c.cyan('backlog')}                        lista backlog local
   ${c.cyan('guard')} <acción> [--file ruta]   valida si una acción está permitida
+  ${c.cyan('scope')} <add|list>               administra alcance permitido
+  ${c.cyan('finding')} <add|list>             registra hallazgos laterales
 
 ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
@@ -156,6 +211,8 @@ function main() {
     case 'bloquear': case 'block': return runtimeBlock({ pos });
     case 'backlog': return runtimeBacklog();
     case 'guard': return runtimeGuard({ flags, pos });
+    case 'scope': return runtimeScope({ flags, pos });
+    case 'finding': return runtimeFinding({ flags, pos });
     case 'init': return init({ root: process.cwd(), dossierDir: flags.dir || 'capa' });
     case 'vision': { const { root, config } = loadConfig(); return vision({ root, config, adr: pos[0], title: flags.title, slug: flags.slug }); }
     case 'new': { const { root, config } = loadConfig(); return newCapa({ root, config, adr: pos[0], objetivo: flags.objetivo, title: flags.title, route: flags.route, frontend: !!flags.frontend }); }
