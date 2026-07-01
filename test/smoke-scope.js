@@ -17,15 +17,20 @@ function attempt(args) {
   return spawnSync(process.execPath, [binPath, ...args], { cwd: root, encoding: 'utf8' });
 }
 
+function nextOk(summary) {
+  run(['completar', '--status', 'ok', '--summary', summary]);
+  return run(['siguiente']);
+}
+
 if (fs.existsSync(dbPath)) fs.rmSync(dbPath, { force: true });
 run(['iniciar', 'Scope smoke PBI']);
 run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
+nextOk('Discovery complete');
+nextOk('Viability complete');
+nextOk('Context complete');
+nextOk('Scope complete');
+nextOk('Gate complete');
+nextOk('Approval complete');
 
 assert.match(run(['scope', 'add', 'src', '--reason', 'implementation folder']), /Scope agregado/);
 assert.match(run(['scope', 'list']), /src/);
