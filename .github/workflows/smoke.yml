@@ -53,3 +53,6 @@ jobs:
 
       - name: Run CAPA dashboard actions smoke test
         run: npm run test:dashboard-actions
+
+      - name: Run CAPA agent adapter smoke test
+        run: npm run test:agents
