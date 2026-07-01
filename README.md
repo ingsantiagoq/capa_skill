@@ -4,8 +4,6 @@
 
 CAPA es un runtime local para controlar trabajo asistido por agentes de IA en Claude Code, Codex u otras herramientas. Su objetivo no es generar más documentación, sino lograr trabajo pequeño, verificable, persistente y sin scope creep.
 
-> CAPA tiene cuatro letras. **Poder / Gobernanza** puede existir como capacidad transversal de decisión, firma o aprobación, pero no forma parte del acrónimo. CAPA no es CAPAP.
-
 ---
 
 ## Problema que CAPA busca resolver
