@@ -20,6 +20,7 @@ const evidence = require('../lib/runtime/evidence');
 const tests = require('../lib/runtime/tests');
 const reviews = require('../lib/runtime/reviews');
 const closure = require('../lib/runtime/closure');
+const sprint = require('../lib/runtime/sprint');
 
 const pkg = require('../package.json');
 
@@ -235,17 +236,31 @@ function runtimeReview({ flags, pos }) {
 
 function runtimeClose({ flags, pos }) {
   const target = pos[0];
-  if (target !== 'pbi') { console.error(c.red('uso: capa cerrar pbi [--summary "..."]')); process.exit(1); }
-  const out = closure.closePbi({ root: process.cwd(), summary: flags.summary || null });
-  if (!out.ok) {
-    console.log(c.red('CAPA BLOCK'));
-    if (out.item) console.log(`PBI: #${out.item.id} ${out.item.title}`);
-    for (const blocker of out.blockers) console.log(`- ${blocker}`);
-    process.exit(2);
+  if (target === 'pbi') {
+    const out = closure.closePbi({ root: process.cwd(), summary: flags.summary || null });
+    if (!out.ok) {
+      console.log(c.red('CAPA BLOCK'));
+      if (out.item) console.log(`PBI: #${out.item.id} ${out.item.title}`);
+      for (const blocker of out.blockers) console.log(`- ${blocker}`);
+      process.exit(2);
+    }
+    console.log(c.green('CAPA PBI CLOSED'));
+    console.log(`PBI: #${out.item.id} ${out.item.title}`);
+    console.log(`Resumen: ${out.summary}`);
+    return;
   }
-  console.log(c.green('CAPA PBI CLOSED'));
-  console.log(`PBI: #${out.item.id} ${out.item.title}`);
-  console.log(`Resumen: ${out.summary}`);
+  if (target === 'sprint') {
+    const out = sprint.closeSprint({ root: process.cwd(), summary: flags.summary || null });
+    console.log(c.green('CAPA SPRINT CLOSED'));
+    console.log(`Closure: #${out.closureId}`);
+    console.log(`PBIs cerrados: ${out.closedCount}`);
+    console.log(`PBIs pendientes: ${out.pendingCount}`);
+    console.log(`Hallazgos: ${out.findingCount}`);
+    console.log(out.summary);
+    return;
+  }
+  console.error(c.red('uso: capa cerrar <pbi|sprint> [--summary "..."]'));
+  process.exit(1);
 }
 
 function help() {
@@ -265,6 +280,7 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('test')} <add|list>                registra pruebas del PBI
   ${c.cyan('review')} <add|list>              registra code review del PBI
   ${c.cyan('cerrar')} pbi                     cierra PBI con gates mínimos
+  ${c.cyan('cerrar')} sprint                  compacta sprint desde SQLite
 
 ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
