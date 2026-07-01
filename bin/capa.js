@@ -16,6 +16,7 @@ const runtime = require('../lib/runtime/items');
 const guard = require('../lib/runtime/guard');
 const scope = require('../lib/runtime/scope');
 const findings = require('../lib/runtime/findings');
+const evidence = require('../lib/runtime/evidence');
 
 const pkg = require('../package.json');
 
@@ -172,6 +173,39 @@ function runtimeFinding({ flags, pos }) {
   process.exit(1);
 }
 
+function runtimeEvidence({ flags, pos }) {
+  const sub = pos[0];
+  if (sub === 'add') {
+    const claim = pos.slice(1).join(' ').trim();
+    if (!claim) { console.error(c.red('uso: capa evidence add "claim" [--classification VERIFIED|PARTIAL|ASSUMPTION|UNKNOWN] [--type test] [--file ruta] [--command "..."]')); process.exit(1); }
+    const out = evidence.add({
+      root: process.cwd(),
+      claim,
+      classification: flags.classification || flags.class || 'UNKNOWN',
+      sourceType: flags.type || null,
+      filePath: flags.file || null,
+      symbol: flags.symbol || null,
+      command: flags.command || null,
+      resultSummary: flags.result || flags.summary || null,
+      confidence: flags.confidence || null,
+    });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.green(`Evidence #${out.evidenceId} registrada en PBI #${out.item.id}`));
+    console.log(`Clasificación: ${out.classification}`);
+    console.log(`Claim: ${out.claim}`);
+    return;
+  }
+  if (sub === 'list') {
+    const out = evidence.list({ root: process.cwd() });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    if (!out.rows.length) return console.log('(sin evidencia)');
+    for (const row of out.rows) console.log(`#${row.id} [${row.classification}] ${row.state} :: ${row.claim}${row.source_type ? ` :: ${row.source_type}` : ''}`);
+    return;
+  }
+  console.error(c.red('uso: capa evidence <add|list>'));
+  process.exit(1);
+}
+
 function help() {
   console.log(`${c.bold('capa')} v${pkg.version} — Contexto · Alcance · Progreso · Aseguramiento
 
@@ -185,6 +219,7 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('guard')} <acción> [--file ruta]   valida si una acción está permitida
   ${c.cyan('scope')} <add|list>               administra alcance permitido
   ${c.cyan('finding')} <add|list>             registra hallazgos laterales
+  ${c.cyan('evidence')} <add|list>            registra evidencia verificable
 
 ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
@@ -213,6 +248,7 @@ function main() {
     case 'guard': return runtimeGuard({ flags, pos });
     case 'scope': return runtimeScope({ flags, pos });
     case 'finding': return runtimeFinding({ flags, pos });
+    case 'evidence': return runtimeEvidence({ flags, pos });
     case 'init': return init({ root: process.cwd(), dossierDir: flags.dir || 'capa' });
     case 'vision': { const { root, config } = loadConfig(); return vision({ root, config, adr: pos[0], title: flags.title, slug: flags.slug }); }
     case 'new': { const { root, config } = loadConfig(); return newCapa({ root, config, adr: pos[0], objetivo: flags.objetivo, title: flags.title, route: flags.route, frontend: !!flags.frontend }); }
