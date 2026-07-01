@@ -14,7 +14,8 @@
     "test:db": "node test/smoke-db-first.js",
     "test:guard": "node test/smoke-guard.js",
     "test:scope": "node test/smoke-scope.js",
-    "test:evidence": "node test/smoke-evidence.js"
+    "test:evidence": "node test/smoke-evidence.js",
+    "test:review": "node test/smoke-test-review.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
