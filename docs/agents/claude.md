@@ -29,10 +29,18 @@ Then do exactly one returned state.
 - NEW/DISCOVERY: inspect and gather evidence only.
 - PLAN: define minimal approach, no edits.
 - SCOPE: add allowed paths.
-- IMPLEMENT: edit only allowed paths.
+- IMPLEMENT: edit only allowed paths. Run `node bin/capa.js guard edit --file <path>` before touching a file; if the guard blocks, stop.
 - TEST: run or register tests.
 - CODE_REVIEW: review current diff only.
 - DONE: close PBI if gates pass.
+
+## Lateral findings
+
+Do not fix unrelated bugs inside the current PBI. Register each lateral finding and keep going:
+
+```bash
+node bin/capa.js finding add "<title>" --description "<details>" --outside --action new-pbi
+```
 
 ## Token discipline
 
