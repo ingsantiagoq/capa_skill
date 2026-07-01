@@ -5,19 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CAPA Dashboard</title>
   <style>
-    :root {
-      color-scheme: dark;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #101114;
-      color: #f5f5f5;
-    }
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #101114; color: #f5f5f5; }
     body { margin: 0; background: #101114; }
     header { padding: 24px 32px; border-bottom: 1px solid #2b2d33; }
     main { padding: 24px 32px; display: grid; gap: 20px; }
     h1, h2, h3 { margin: 0; }
+    label { display: grid; gap: 6px; color: #d8dbe2; font-size: 13px; }
+    input, select, textarea { width: 100%; box-sizing: border-box; border: 1px solid #3a3d46; background: #0f1117; color: #f5f5f5; border-radius: 9px; padding: 9px 10px; }
+    textarea { min-height: 70px; resize: vertical; }
     .muted { color: #a8adb8; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
     .card { background: #17191f; border: 1px solid #2b2d33; border-radius: 14px; padding: 18px; }
+    .stack { display: grid; gap: 12px; }
     .metric { font-size: 32px; font-weight: 800; margin-top: 8px; }
     .item { border-top: 1px solid #2b2d33; padding: 12px 0; }
     .item:first-child { border-top: 0; }
@@ -30,94 +29,30 @@
 <body>
   <header>
     <h1>CAPA Dashboard</h1>
-    <p class="muted">Backlog, avance y evidencia desde la API local DB-first.</p>
+    <p class="muted">Backlog, avance y acciones desde la API local DB-first.</p>
   </header>
 
   <main>
     <section class="grid">
-      <article class="card">
-        <h2>PBI activo</h2>
-        <div id="active" class="muted">Cargando...</div>
-      </article>
-      <article class="card">
-        <h2>Backlog</h2>
-        <div class="metric" id="backlog-count">0</div>
-        <p class="muted">PBIs activos o pendientes</p>
-      </article>
-      <article class="card">
-        <h2>Acciones</h2>
-        <button id="refresh">Actualizar</button>
-        <button id="next">Siguiente paso</button>
-      </article>
+      <article class="card"><h2>PBI activo</h2><div id="active" class="muted">Cargando...</div></article>
+      <article class="card"><h2>Backlog</h2><div class="metric" id="backlog-count">0</div><p class="muted">PBIs activos o pendientes</p></article>
+      <article class="card stack"><h2>Acciones rápidas</h2><button id="refresh">Actualizar</button><button id="next">Siguiente paso</button><button id="close-pbi">Cerrar PBI</button><button id="close-sprint">Cerrar sprint</button><div id="status" class="muted"></div></article>
     </section>
 
     <section class="grid">
-      <article class="card">
-        <h2>Backlog</h2>
-        <div id="backlog"></div>
-      </article>
-      <article class="card">
-        <h2>Detalle del PBI activo</h2>
-        <div id="detail" class="muted">Sin detalle todavía.</div>
-      </article>
+      <article class="card"><h2>Backlog</h2><div id="backlog"></div></article>
+      <article class="card"><h2>Detalle del PBI activo</h2><div id="detail" class="muted">Sin detalle todavía.</div></article>
     </section>
 
-    <section class="card">
-      <h2>Estado API</h2>
-      <pre id="raw">{}</pre>
+    <section class="grid">
+      <form id="evidence-form" class="card stack"><h2>Agregar evidencia</h2><label>Claim <textarea name="claim" required></textarea></label><label>Clasificación <select name="classification"><option>VERIFIED</option><option>PARTIAL</option><option>ASSUMPTION</option><option>UNKNOWN</option></select></label><label>Tipo <input name="type" /></label><label>Comando <input name="command" /></label><label>Resultado <input name="result" /></label><button type="submit">Guardar evidencia</button></form>
+      <form id="test-form" class="card stack"><h2>Registrar test</h2><label>Tipo <input name="type" /></label><label>Comando <input name="command" /></label><label>Status <select name="status"><option>ok</option><option>failed</option><option>unknown</option></select></label><label>Resumen <input name="summary" /></label><button type="submit">Guardar test</button></form>
+      <form id="review-form" class="card stack"><h2>Registrar review</h2><label>Status <select name="status"><option>ok</option><option>changes_requested</option><option>unknown</option></select></label><label>Riesgo <select name="risk"><option>low</option><option>medium</option><option>high</option></select></label><label>Resumen <textarea name="summary"></textarea></label><label>Hallazgos <textarea name="findings"></textarea></label><button type="submit">Guardar review</button></form>
+      <form id="finding-form" class="card stack"><h2>Registrar finding</h2><label>Título <input name="title" required /></label><label>Descripción <textarea name="description"></textarea></label><label>Acción <input name="action" value="record" /></label><label><span><input type="checkbox" name="outside" /> Fuera del PBI actual</span></label><button type="submit">Guardar finding</button></form>
     </section>
+
+    <section class="card"><h2>Estado API</h2><pre id="raw">{}</pre></section>
   </main>
-
-  <script>
-    async function api(path, options) {
-      const res = await fetch(path, options);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.message || 'CAPA API error');
-      return data;
-    }
-
-    function itemHtml(item) {
-      if (!item) return '<p class="muted">No hay PBI activo.</p>';
-      return `
-        <div class="item">
-          <h3>#${item.id} ${item.title}</h3>
-          <p><span class="pill">${item.status}</span> <span class="pill">${item.current_state} → ${item.next_state || '—'}</span> <span class="pill">P${item.priority}</span></p>
-        </div>`;
-    }
-
-    function rows(title, values, render) {
-      if (!values || values.length === 0) return `<h3>${title}</h3><p class="muted">Sin registros.</p>`;
-      return `<h3>${title}</h3>${values.map(render).join('')}`;
-    }
-
-    async function render() {
-      const dashboard = await api('/dashboard');
-      document.getElementById('active').innerHTML = itemHtml(dashboard.active);
-      document.getElementById('backlog-count').textContent = dashboard.backlog.length;
-      document.getElementById('backlog').innerHTML = dashboard.backlog.map(itemHtml).join('') || '<p class="muted">Backlog vacío.</p>';
-      document.getElementById('raw').textContent = JSON.stringify(dashboard, null, 2);
-
-      if (dashboard.active) {
-        const detail = await api(`/items/${dashboard.active.id}/progress`);
-        document.getElementById('detail').innerHTML = [
-          rows('Progreso', detail.progress, (r) => `<div class="item"><span class="pill">${r.state}</span> ${r.status} — ${r.summary || ''}</div>`),
-          rows('Evidencia', detail.evidence, (r) => `<div class="item"><span class="pill">${r.classification}</span> ${r.claim}</div>`),
-          rows('Tests', detail.tests, (r) => `<div class="item"><span class="pill">${r.status}</span> ${r.command || r.summary || r.test_type || ''}</div>`),
-          rows('Reviews', detail.reviews, (r) => `<div class="item"><span class="pill">${r.status}</span> risk=${r.risk_level || '—'} ${r.diff_summary || ''}</div>`),
-          rows('Findings', detail.findings, (r) => `<div class="item"><span class="pill">${r.belongs_to_current_item ? 'IN' : 'OUT'}</span> ${r.title} — ${r.action}</div>`),
-        ].join('');
-      }
-    }
-
-    document.getElementById('refresh').addEventListener('click', render);
-    document.getElementById('next').addEventListener('click', async () => {
-      await api('/next', { method: 'POST' });
-      await render();
-    });
-
-    render().catch((error) => {
-      document.getElementById('raw').textContent = error.stack || error.message;
-    });
-  </script>
+  <script src="/app.js"></script>
 </body>
 </html>
