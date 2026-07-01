@@ -10,7 +10,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/smoke.js"
+    "test": "node test/smoke.js",
+    "test:db": "node test/smoke-db-first.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
