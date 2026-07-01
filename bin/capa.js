@@ -19,6 +19,7 @@ const findings = require('../lib/runtime/findings');
 const evidence = require('../lib/runtime/evidence');
 const tests = require('../lib/runtime/tests');
 const reviews = require('../lib/runtime/reviews');
+const closure = require('../lib/runtime/closure');
 
 const pkg = require('../package.json');
 
@@ -232,6 +233,21 @@ function runtimeReview({ flags, pos }) {
   process.exit(1);
 }
 
+function runtimeClose({ flags, pos }) {
+  const target = pos[0];
+  if (target !== 'pbi') { console.error(c.red('uso: capa cerrar pbi [--summary "..."]')); process.exit(1); }
+  const out = closure.closePbi({ root: process.cwd(), summary: flags.summary || null });
+  if (!out.ok) {
+    console.log(c.red('CAPA BLOCK'));
+    if (out.item) console.log(`PBI: #${out.item.id} ${out.item.title}`);
+    for (const blocker of out.blockers) console.log(`- ${blocker}`);
+    process.exit(2);
+  }
+  console.log(c.green('CAPA PBI CLOSED'));
+  console.log(`PBI: #${out.item.id} ${out.item.title}`);
+  console.log(`Resumen: ${out.summary}`);
+}
+
 function help() {
   console.log(`${c.bold('capa')} v${pkg.version} — Contexto · Alcance · Progreso · Aseguramiento
 
@@ -248,6 +264,7 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('evidence')} <add|list>            registra evidencia verificable
   ${c.cyan('test')} <add|list>                registra pruebas del PBI
   ${c.cyan('review')} <add|list>              registra code review del PBI
+  ${c.cyan('cerrar')} pbi                     cierra PBI con gates mínimos
 
 ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
@@ -279,6 +296,7 @@ function main() {
     case 'evidence': return runtimeEvidence({ flags, pos });
     case 'test': return runtimeTest({ flags, pos });
     case 'review': return runtimeReview({ flags, pos });
+    case 'cerrar': case 'close': return runtimeClose({ flags, pos });
     case 'init': return init({ root: process.cwd(), dossierDir: flags.dir || 'capa' });
     case 'vision': { const { root, config } = loadConfig(); return vision({ root, config, adr: pos[0], title: flags.title, slug: flags.slug }); }
     case 'new': { const { root, config } = loadConfig(); return newCapa({ root, config, adr: pos[0], objetivo: flags.objetivo, title: flags.title, route: flags.route, frontend: !!flags.frontend }); }
