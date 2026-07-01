@@ -44,3 +44,6 @@ jobs:
 
       - name: Run CAPA close sprint smoke test
         run: npm run test:sprint
+
+      - name: Run CAPA local API smoke test
+        run: node test/smoke-api.js
