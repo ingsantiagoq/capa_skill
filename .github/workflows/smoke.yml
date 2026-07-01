@@ -50,3 +50,6 @@ jobs:
 
       - name: Run CAPA dashboard smoke test
         run: node test/smoke-dashboard.js
+
+      - name: Run CAPA dashboard actions smoke test
+        run: npm run test:dashboard-actions
