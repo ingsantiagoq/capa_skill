@@ -1,124 +1,623 @@
-# capa-cli
+# CAPA
 
 **CAPA** — Contexto · Alcance · Progreso · Aseguramiento · Poder.
 
-Un **ADR es la visión** de un dominio (todo lo que queremos). Cada **iteración / módulo / objetivo es 1 CAPA**:
-la especificación de UN paso, **tan detallada que no le deja imaginación al agente**, anclada al código vía
-[graphify](https://) (dependencia dura) y verificada adversarialmente. Replicable entre proyectos.
+CAPA busca convertir el trabajo asistido por agentes de IA en un proceso **controlado, verificable y persistente**.
 
-## Por qué
+No es solo una Skill.  
+No es solo documentación.  
+No es un conjunto de archivos `.md` para recordarle cosas al agente.
 
-Los ADR de diseño se desincronizan del código (en UBP: 0/19 E2E-verificados contra el build limpio) y los
-agentes "rellenan con imaginación" lo que la spec no fijó. CAPA aterriza cada paso al extremo, **ancla** cada
-afirmación al grafo del código, **hila las dependencias** sobre la ruta del objetivo, y bloquea el PR si algo
-driftea o un claim no trae evidencia. El puente diseño↔código↔evidencia deja de ser disciplina humana.
+CAPA debe ser un **runtime local de trabajo** para Claude Code, Codex u otros agentes: un único comando visible, una base de datos local como fuente de verdad, una máquina de estados estricta, evidencia obligatoria, bloqueo de scope creep y un tablero para ver el avance real.
 
-## Jerarquía
+---
 
+## Problema que CAPA debe resolver
+
+Los agentes de código tienden a fallar de formas repetidas:
+
+- leen demasiado contexto y consumen tokens sin necesidad;
+- interpretan tareas ambiguas como permiso para ampliar alcance;
+- encuentran un fallo lateral y lo corrigen sin confirmar si pertenece al objetivo;
+- dicen que algo está hecho sin evidencia reproducible;
+- ejecutan varias fases seguidas cuando el usuario solo pidió “lo que sigue”;
+- se apoyan en memoria conversacional o archivos Markdown que pueden estar desactualizados;
+- hacen code review, debugging o refactor como exploración abierta, no como trabajo acotado.
+
+CAPA existe para impedir eso.
+
+La regla central es:
+
+```text
+Cada /capa ejecuta una sola transición, registra evidencia y se detiene.
 ```
-capa/ADR-0012-inventario/        ← VISIÓN del ADR (VISION.md, no es un CAPA)
-  d-venta-cogs/                  ← 1 CAPA = 1 objetivo (detalle extremo)
-    manifest.json (route, anchors, evidence, decisions)
-    CONTEXTO  ALCANCE  PROGRESO  ASEGURAMIENTO  PODER  (.md)
-  a-emitmovement/  c-compra/ …   ← otros objetivos
+
+---
+
+## Principio rector
+
+```text
+Si no está en la base local de CAPA, no existe como estado operativo.
 ```
 
-## Instalación
+La conversación no es fuente de verdad.  
+Los Markdown no son fuente de verdad.  
+Los handoffs manuales no son fuente de verdad.  
+
+La fuente de verdad operativa debe ser:
+
+```text
+.capa/capa.db
+```
+
+Los archivos Markdown pueden existir, pero solo como:
+
+- adaptadores mínimos para Claude Code o Codex;
+- vistas generadas desde la base;
+- exportes humanos;
+- documentación de instalación o visión.
+
+Nunca deben decidir el estado real del trabajo.
+
+---
+
+## Qué es CAPA
+
+Un CAPA es la especificación ejecutable de **un objetivo pequeño**.
+
+No se hace un CAPA para un dominio completo.  
+No se hace un CAPA para una visión completa.  
+No se hace un CAPA para “arreglar todo”.
+
+Un CAPA existe para un slice concreto:
+
+```text
+Corregir el contrato del panel
+Agregar validación de una regla
+Crear una pantalla específica
+Reproducir y corregir un bug puntual
+Refactorizar una función delimitada
+```
+
+La jerarquía mental es:
+
+```text
+ADR / Visión      = dirección amplia del dominio
+PBI / Backlog    = unidad priorizada de trabajo
+CAPA             = ejecución controlada de un objetivo pequeño
+Transición       = un solo paso verificable dentro de ese CAPA
+```
+
+---
+
+## Las cinco dimensiones
+
+CAPA conserva su núcleo original:
+
+### C — Contexto
+
+Qué objetivo exacto se está atacando, qué historia lo justifica, qué reglas aplican, qué invariantes no pueden romperse y qué trampas conocidas existen.
+
+### A — Alcance
+
+Qué entra, qué no entra, qué archivos o rutas pueden tocarse y qué hallazgos deben convertirse en otro PBI en vez de corregirse dentro del actual.
+
+### P — Progreso
+
+Registro vivo de estados, comandos, resultados, duración, evidencia y bloqueos. El progreso no es decoración: gobierna qué falta y qué puede seguir.
+
+### A — Aseguramiento
+
+Cada invariante debe mapearse a una assertion, una prueba, una evidencia y un resultado verificable.
+
+### P — Poder
+
+Decisiones de arquitectura, producto o firma que gobiernan el cambio. Si una decisión bloquea, el agente no debe avanzar sin aprobación.
+
+---
+
+## Lo que CAPA no debe ser
+
+CAPA no debe convertirse en burocracia.
+
+Debe evitar:
+
+- ADR por cada microtarea;
+- plantillas largas que nadie valida;
+- muchas Skills visibles compitiendo entre sí;
+- documentos manuales que se desincronizan;
+- dashboards bonitos sobre datos débiles;
+- hooks agresivos antes de tener un motor estable;
+- correcciones automáticas de fallos fuera del objetivo;
+- tareas de “5 minutos” que el agente extiende sin freno.
+
+CAPA debe reducir incertidumbre, no aumentar ceremonia.
+
+---
+
+## Comando único
+
+La experiencia deseada para el usuario es simple:
 
 ```bash
-npm i -g @btw/capa-cli           # o clonar y `npm link`
-capa install --platform claude   # skill /capa + sección CLAUDE.md (idempotente)
-graphify update .                # CAPA depende del grafo de graphify
+/capa iniciar "Corregir contrato del panel"
+/capa estado
+/capa vamos con lo que sigue
+/capa aprobar
+/capa bloquear "motivo"
+/capa backlog
+/capa siguiente
+/capa cerrar pbi
+/capa cerrar sprint
+/capa compactar
 ```
 
-## Flujo (la skill `/capa` lo conduce, una cosa a la vez)
+El usuario no debe tener que invocar manualmente fases internas como `evidence`, `gate`, `graphify`, `test` o `code-review`.
 
-1. **Pregunta qué objetivo** aterrizar (no el dominio entero).
-2. **Arma el panel de expertos** para ese objetivo (con tu confirmación).
-3. **Crea el CAPA + activa graphify sobre la ruta** e hila dependencias.
-4. **Documenta al extremo** (5 dimensiones, ancladas a nodos del grafo).
-5. **Verificación adversarial + `capa doctor`** verde.
+CAPA debe leer la base local y saber qué transición corresponde.
 
-```bash
-capa vision ADR-0012 --title "Inventario"
-capa new ADR-0012 --objetivo d-venta-cogs --route ubp-ar-service/src,ubp-inventory-service/src
-capa thread   ADR-0012 --objetivo d-venta-cogs  # graphify sobre la ruta → dependencias
-capa progress ADR-0012 --objetivo d-venta-cogs  # marca qué llevo/qué falta (--done <sliceId>)
-capa govern   ADR-0012                           # decisiones de firma del PO (--sign DP-x)
-capa panel    ADR-0012 --objetivo d-venta-cogs  # plan del panel (Execution Runtime)
-capa doctor   [--adr 0012]                       # gate anti-teatro + regla dura de Done
-capa dashboard                                   # SQLite derivada + HTML del proyecto
-capa status                                      # tabla 2-ejes de todos los CAPAs
+---
+
+## One-step execution
+
+`/capa vamos con lo que sigue` no significa “continúa hasta terminar”.
+
+Significa:
+
+```text
+1. Leer el PBI activo desde SQLite.
+2. Identificar current_state y next_state.
+3. Ejecutar exactamente una transición.
+4. Registrar progreso y evidencia.
+5. Calcular el próximo estado.
+6. Detenerse.
 ```
 
-### Progreso → Alcance (registro vivo)
+Ejemplo de salida esperada:
 
-`capa progress` marca los `slices` del Alcance como done/pendiente (reescribe el manifest). El % de avance
-sale de ahí. "Progreso no está por bonito": marca qué llevo y qué falta, y actualiza el Alcance.
+```text
+CAPA STOP
 
-### La regla dura de Aseguramiento (Done gate)
+PBI: Panel DB Contract
+Estado ejecutado: DEPLOY_VERIFY
+Resultado: OK
+Evidencia: push verificado, contrato OK contra DB
+Próximo estado: E2E_UI
 
-Un CAPA **no pasa a `lifecycle: done`** hasta probar el Alcance **por API o e2e-UI**. `capa doctor` (E9)
-bloquea `done` si no hay evidencia `kind: api`|`e2e-ui`, o si quedan firmas pendientes. `unit`/`graph` no alcanzan.
-
-### Gobernanza a nivel visión (`capa govern`)
-
-Una visión (ADR) puede tener `governance.json`: las decisiones que requieren firma del PO (`{id, what,
-recommendation, owner, state, gate, unblocks}`). `capa govern <ADR>` lista; `--sign DP-x` / `--reject DP-x`
-cambian el estado. Las decisiones con `gate:true` bloquean toda una fase hasta firmarse. El dashboard las
-muestra por ADR + un KPI de firmas pendientes.
-
-### Dashboard (DB derivada)
-
-`capa dashboard` reconstruye `capa-out/capa.db` (SQLite, `node:sqlite`) escaneando los manifests + git, y
-renderiza `capa-out/dashboard.html`: todos los ADR (visiones), estado 2-ejes + lifecycle por CAPA, % avance
-y bloqueos. **La DB es una proyección regenerable, no una verdad paralela** — la verdad vive en el código.
-
-## `capa doctor` — reglas que bloquean (MODO BLOQUEO)
-
-| Código | Falla |
-|---|---|
-| E1–E3 | manifest ilegible / estado 2-ejes inválido / falta una dimensión |
-| E4 | **drift**: ancla que no existe en el grafo |
-| E5 | **teatro**: evidencia sin comando reproducible |
-| E6 | `E2E-VERIFIED` sin `verified_against` + comando + ancla viva |
-| E7 | hay implementación pero 0 anclas vivas |
-| E8 | **ruta stale**: un prefijo de `route` no matchea ningún nodo del grafo |
-| E9 | **Done sin prueba**: `lifecycle:done` sin evidencia `api`/`e2e-ui`, o con firmas pendientes |
-| E10 | **front sin diseño**: CAPA `frontend:true` que no declara las 3 skills (emil-kowalski/impeccable/taste) |
-
-`PODER` (firmas pendientes) son avisos, no bloqueos: gobernanza, no teatro.
-
-## El equipo (skills que ejecutan cada CAPA)
-
-CAPA orquesta; estas skills hacen el trabajo: `ubp-bootstrap` · `new-microservice`/`new-entity`/`new-proto` ·
-`new-page`/`frontend-angular` · `backend-reviewer`/`frontend-reviewer` · `ubp-validate-story`/`ubp-sonar-check`
-· `ubp-handoff`.
-
-## Arquitectura del paquete
-
-```
-bin/capa.js     dispatcher
-lib/graph.js    carga graph.json, resuelve nodos + links
-lib/doctor.js   linter anti-teatro recursivo (E1–E8)
-lib/thread.js   activa graphify sobre la ruta, hila dependencias
-lib/scaffold.js init · vision · new (CAPA por objetivo)
-lib/panel.js    Execution Runtime (plan del panel)
-lib/install.js  install/uninstall (reversible)
-skill/SKILL.md  skill /capa (flujo interactivo + equipo)
-templates/      VISION.md + dossier/ (5 dimensiones + manifest)
+No continúo hasta recibir:
+/capa vamos con lo que sigue
 ```
 
-## Dependencias de frontend (apariencia completa)
+Esta regla existe para evitar que el agente encadene tareas, dé vueltas o se vaya por las ramas.
 
-Un CAPA de front (`capa new ... --frontend`) declara y exige 3 skills de diseño:
-`emil-kowalski` · `impeccable` · `taste`. `capa doctor` (E10) bloquea si faltan. El panel de un CAPA de
-front las usa para el Contrato Front (vistas/estados/línea gráfica).
+---
 
-## Roadmap
+## DB-first runtime
 
-- [ ] Plugin de Claude Code (`plugin.json` + `marketplace.json`) → install vía `/plugin`.
-- [ ] `capa doctor` como hook pre-commit (bloqueo automático).
-- [ ] `capa progress --auto` — derivar slices done de `dotnet test` + grafo.
-- [ ] `capa dashboard --serve` — servidor live; histórico de avance por commit en la DB.
-- [ ] Extracción semántica (Gemini) → `thread` ve también las dependencias gRPC cross-service.
+CAPA debe evolucionar a una arquitectura DB-first:
+
+```text
+.capa/
+  capa.db              # fuente de verdad operativa
+  schema.sql           # esquema local
+  config.json          # budgets, límites y reglas
+  bin/
+    capa.py            # CLI / runtime principal
+    capa_db.py         # repositorio único de persistencia
+    capa_guard.py      # validaciones y bloqueos
+    capa_git.py        # diff/status resumido
+    capa_compact.py    # compactación de PBI/sprint/contexto
+    capa_api.py        # API local para frontend
+```
+
+La DB debe guardar, como mínimo:
+
+- backlog / PBIs;
+- sprint actual;
+- estado actual y próximo estado;
+- progreso;
+- alcance permitido;
+- evidencia;
+- hallazgos;
+- decisiones;
+- tests;
+- code reviews;
+- cierres de PBI;
+- cierres de sprint;
+- compactaciones.
+
+---
+
+## Markdown como vista, no como verdad
+
+CAPA puede generar archivos como:
+
+```text
+HANDOFF.md
+CONTEXT.md
+BACKLOG.md
+SPRINT_SUMMARY.md
+ADR.md
+```
+
+Pero esos archivos son exportes, no gobierno.
+
+Si hay conflicto entre `.capa/capa.db` y un Markdown, gana SQLite.
+
+---
+
+## Máquina de estados objetivo
+
+CAPA debe avanzar por estados explícitos.
+
+Flujo base:
+
+```text
+NEW
+DISCOVERY
+VIABILITY
+CONTEXT
+SCOPE
+GATE
+APPROVAL
+IMPLEMENT
+BUILD
+TEST
+CODE_REVIEW
+CLOSURE
+DONE
+BLOCKED
+```
+
+Estados opcionales:
+
+```text
+GRAPHIFY        # si se toca código existente
+REPRODUCE       # si el PBI es bug
+ROOT_CAUSE      # si hay fallo reproducido
+LESSONS         # si hubo aprendizaje real
+COMPACTED       # después de cierre / compactación
+```
+
+Regla dura:
+
+```text
+No existen transiciones libres.
+```
+
+CAPA no debe “deducir” creativamente qué sigue. Debe leerlo de la base.
+
+---
+
+## Presupuesto operativo
+
+“Tareas de máximo 5 minutos” no debe ser una frase blanda.
+
+Debe convertirse en presupuesto operativo:
+
+```json
+{
+  "max_minutes": 5,
+  "max_tool_calls": 8,
+  "max_bash_commands": 4,
+  "max_file_reads": 5,
+  "max_file_edits": 2,
+  "max_files_touched": 2,
+  "max_git_diff_lines": 200,
+  "allow_auto_fix": false
+}
+```
+
+Si el presupuesto se agota, CAPA debe bloquear y registrar el motivo.
+
+---
+
+## Hallazgos fuera de alcance
+
+Cuando el agente detecta un problema lateral, CAPA no debe permitir corrección automática.
+
+Flujo correcto:
+
+```text
+1. Registrar hallazgo.
+2. Clasificar si pertenece al PBI actual.
+3. Si no pertenece, crear nuevo PBI.
+4. Detenerse.
+5. Esperar aprobación humana.
+```
+
+Ejemplo:
+
+```text
+Hallazgo: E2E UI falla por selector inestable
+Pertenece al PBI actual: NO
+Acción: nuevo PBI creado
+Estado: PAUSED_FOR_USER
+No se modificó código.
+```
+
+---
+
+## Graphify
+
+Graphify sigue siendo una pieza importante, pero no debe usarse como religión.
+
+Regla:
+
+```text
+Si se va a tocar código existente, graphify es obligatorio antes de leer/grepear archivos crudos.
+Si no hay código fuente involucrado, graphify no aplica.
+```
+
+Todo claim sobre código debe tener:
+
+- nodo o símbolo;
+- archivo;
+- comando o evidencia reproducible;
+- clasificación de confianza.
+
+---
+
+## Evidencia
+
+Toda afirmación relevante debe clasificarse:
+
+```text
+VERIFIED
+PARTIAL
+ASSUMPTION
+UNKNOWN
+```
+
+La evidencia puede ser de distintos tipos:
+
+```text
+code
+build
+test
+log
+graph
+api
+e2e-ui
+screenshot
+browser
+git_diff
+user_acceptance
+```
+
+CAPA debe bloquear claims críticos sin evidencia.
+
+---
+
+## Code Review
+
+CAPA debe incorporar code review como fase interna, no como exploración abierta.
+
+Reglas:
+
+```text
+- revisar solo el diff del PBI actual;
+- no auditar todo el repositorio;
+- no abrir archivos completos salvo necesidad justificada;
+- máximo hallazgos relevantes;
+- bloquear solo por bug, seguridad, regresión, incumplimiento de alcance o falta de evidencia;
+- no convertir code review en refactor general.
+```
+
+Flujo:
+
+```text
+IMPLEMENT
+BUILD
+TEST
+CODE_REVIEW
+CLOSURE
+```
+
+---
+
+## Hooks y guard
+
+Las instrucciones no bastan. CAPA debe tener bloqueos reales.
+
+`capa_guard` debe impedir, como mínimo:
+
+- editar archivos si el estado no es `IMPLEMENT`;
+- tocar archivos fuera del alcance aprobado;
+- corregir fallos durante `BUILD`, `TEST` o `CODE_REVIEW` sin crear hallazgo y pedir aprobación;
+- continuar si el presupuesto se agotó;
+- cerrar un PBI sin build/test/code review/evidencia mínima;
+- marcar `DONE` sin prueba API o E2E cuando aplique.
+
+El objetivo no es pedirle al agente que se porte bien.  
+El objetivo es que no pueda avanzar si viola CAPA.
+
+---
+
+## Frontend local
+
+CAPA debe tener un frontend local para observar y controlar el backlog.
+
+El frontend no gobierna CAPA.  
+El frontend no escribe directo en SQLite.  
+El frontend solo llama a una API local que usa el mismo runtime.
+
+Arquitectura objetivo:
+
+```text
+Frontend local → CAPA API → CAPA Repository → SQLite
+```
+
+Pantallas mínimas:
+
+- Dashboard;
+- Backlog;
+- PBI activo;
+- línea de estados;
+- evidencia;
+- progreso;
+- hallazgos;
+- tests;
+- code review;
+- cierres de PBI/sprint.
+
+Acciones permitidas:
+
+```text
+Crear PBI
+Ver estado
+Ejecutar siguiente transición one-step
+Aprobar Gate
+Bloquear PBI
+Cerrar PBI
+Cerrar Sprint
+Compactar
+```
+
+No debe existir botón para saltar arbitrariamente a `IMPLEMENT`.
+
+---
+
+## Compactación
+
+CAPA debe compactar por PBI y por sprint.
+
+### Cerrar PBI
+
+Debe guardar:
+
+- qué se pidió;
+- qué se hizo;
+- archivos tocados;
+- evidencia;
+- tests;
+- decisiones;
+- code review;
+- riesgos abiertos;
+- lecciones aprendidas;
+- próximos PBIs generados.
+
+### Cerrar Sprint
+
+Debe guardar:
+
+- PBIs completados;
+- PBIs bloqueados;
+- PBIs movidos;
+- riesgos recurrentes;
+- deuda técnica detectada;
+- decisiones relevantes;
+- próximo foco.
+
+La compactación existe para que el agente no tenga que releer conversaciones largas ni documentos enormes.
+
+---
+
+## Portabilidad Claude Code / Codex
+
+CAPA no debe depender exclusivamente de Claude Code.
+
+El core debe vivir en `.capa/` y ser invocable por terminal.
+
+Claude Code y Codex deben ser adaptadores:
+
+```text
+Claude Code → /capa → .capa/bin/capa.py
+Codex      → AGENTS.md → .capa/bin/capa.py
+Humano     → terminal → .capa/bin/capa.py
+```
+
+La metodología no debe duplicarse en `CLAUDE.md`, `AGENTS.md` o `SKILL.md`.
+
+Esos archivos solo deben decir cómo invocar el runtime y qué no se puede saltar.
+
+---
+
+## Estado actual del repositorio
+
+Este repositorio ya contiene una primera versión de CAPA como CLI de dossier, graphify, doctor anti-teatro, panel y dashboard.
+
+Esa versión es valiosa, pero su modelo actual es principalmente:
+
+```text
+manifest + markdown + git + graphify → dashboard SQLite derivado
+```
+
+El objetivo vNext es migrar hacia:
+
+```text
+SQLite operativo + runtime + guard + API + frontend → vistas/exportes regenerables
+```
+
+No se debe perder lo bueno de la versión actual:
+
+- CAPA por objetivo;
+- anclaje a graphify;
+- doctor anti-teatro;
+- reglas de evidencia;
+- dashboard;
+- gobernanza;
+- panel de ejecución.
+
+Pero debe corregirse el punto débil:
+
+```text
+Los archivos de documentación no deben gobernar el estado del agente.
+```
+
+---
+
+## Roadmap vNext
+
+### Fase 1 — DB-first mínimo
+
+- Crear `.capa/schema.sql`.
+- Crear `.capa/config.json`.
+- Crear repositorio de persistencia único.
+- Crear comandos `init`, `status`, `next --one-step`, `approve`, `block`, `backlog`.
+- Migrar el concepto de PBI activo a SQLite.
+
+### Fase 2 — Guard y presupuestos
+
+- Bloquear edición fuera de `IMPLEMENT`.
+- Bloquear archivos fuera de alcance.
+- Registrar hallazgos fuera de alcance.
+- Aplicar límites de tiempo, comandos, lecturas y ediciones.
+
+### Fase 3 — Evidencia, tests y code review
+
+- Registrar evidencia clasificada.
+- Registrar build/test runs.
+- Ejecutar code review solo sobre diff.
+- Bloquear cierre sin evidencia suficiente.
+
+### Fase 4 — API y frontend local
+
+- Crear API local.
+- Crear tablero visual.
+- Mostrar backlog, progreso, evidencia, hallazgos y estado activo.
+- Ejecutar acciones controladas desde UI.
+
+### Fase 5 — Cierre y compactación
+
+- Implementar `cerrar pbi`.
+- Implementar `cerrar sprint`.
+- Generar handoff/context/export desde DB.
+- Reducir dependencia de archivos largos.
+
+---
+
+## Regla final
+
+CAPA debe ser:
+
+```text
+pequeño para el usuario,
+estricto para el agente,
+persistente en SQLite,
+verificable por evidencia,
+portable entre herramientas,
+y duro contra el scope creep.
+```
+
+Si una parte de CAPA no reduce tokens, no reduce riesgo, no mejora trazabilidad o no impide improvisación, no pertenece al core.
