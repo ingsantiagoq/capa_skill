@@ -25,6 +25,11 @@ function cleanDb() {
   if (fs.existsSync(dbPath)) fs.rmSync(dbPath, { force: true });
 }
 
+function nextOk(summary) {
+  run(['completar', '--status', 'ok', '--summary', summary]);
+  return run(['siguiente']);
+}
+
 cleanDb();
 run(['iniciar', 'Guard smoke PBI']);
 run(['siguiente']);
@@ -34,12 +39,12 @@ assert.equal(blockedEdit.status, 2);
 assert.match(blockedEdit.stdout, /CAPA BLOCK/);
 assert.match(blockedEdit.stdout, /only allowed in IMPLEMENT/);
 
-run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
-run(['siguiente']);
+nextOk('Discovery complete');
+nextOk('Viability complete');
+nextOk('Context complete');
+nextOk('Scope complete');
+nextOk('Gate complete');
+nextOk('Approval complete');
 
 const blockedNoScope = attempt(['guard', 'edit', '--file', 'src/app.js']);
 assert.equal(blockedNoScope.status, 2);
