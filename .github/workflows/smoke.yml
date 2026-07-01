@@ -56,3 +56,6 @@ jobs:
 
       - name: Run CAPA agent adapter smoke test
         run: npm run test:agents
+
+      - name: Run CAPA next transition smoke test
+        run: npm run test:next
