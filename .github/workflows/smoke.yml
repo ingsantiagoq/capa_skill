@@ -29,3 +29,6 @@ jobs:
 
       - name: Run Claude hook smoke test
         run: node test/smoke-hook.js
+
+      - name: Run CAPA scope smoke test
+        run: npm run test:scope
