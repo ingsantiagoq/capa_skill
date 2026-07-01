@@ -41,6 +41,11 @@ run(['siguiente']);
 run(['siguiente']);
 run(['siguiente']);
 
+const blockedNoScope = attempt(['guard', 'edit', '--file', 'src/app.js']);
+assert.equal(blockedNoScope.status, 2);
+assert.match(blockedNoScope.stdout, /Missing approved scope/);
+
+run(['scope', 'add', 'src', '--reason', 'implementation folder']);
 const allowedEdit = attempt(['guard', 'edit', '--file', 'src/app.js']);
 assert.equal(allowedEdit.status, 0);
 assert.match(allowedEdit.stdout, /CAPA ALLOW/);
