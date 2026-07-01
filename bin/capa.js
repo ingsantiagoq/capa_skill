@@ -17,6 +17,8 @@ const guard = require('../lib/runtime/guard');
 const scope = require('../lib/runtime/scope');
 const findings = require('../lib/runtime/findings');
 const evidence = require('../lib/runtime/evidence');
+const tests = require('../lib/runtime/tests');
+const reviews = require('../lib/runtime/reviews');
 
 const pkg = require('../package.json');
 
@@ -149,13 +151,7 @@ function runtimeFinding({ flags, pos }) {
   if (sub === 'add') {
     const title = pos.slice(1).join(' ').trim();
     if (!title) { console.error(c.red('uso: capa finding add "titulo" [--description "..."] [--outside] [--action record]')); process.exit(1); }
-    const out = findings.add({
-      root: process.cwd(),
-      title,
-      description: flags.description || null,
-      belongs: !Boolean(flags.outside),
-      action: flags.action || 'record',
-    });
+    const out = findings.add({ root: process.cwd(), title, description: flags.description || null, belongs: !Boolean(flags.outside), action: flags.action || 'record' });
     if (!out.ok) return console.log(c.yellow(out.message));
     console.log(c.green(`Finding #${out.findingId} registrado en PBI #${out.item.id}: ${out.title}`));
     console.log(`Pertenece al PBI actual: ${out.belongs ? 'SI' : 'NO'}`);
@@ -178,17 +174,7 @@ function runtimeEvidence({ flags, pos }) {
   if (sub === 'add') {
     const claim = pos.slice(1).join(' ').trim();
     if (!claim) { console.error(c.red('uso: capa evidence add "claim" [--classification VERIFIED|PARTIAL|ASSUMPTION|UNKNOWN] [--type test] [--file ruta] [--command "..."]')); process.exit(1); }
-    const out = evidence.add({
-      root: process.cwd(),
-      claim,
-      classification: flags.classification || flags.class || 'UNKNOWN',
-      sourceType: flags.type || null,
-      filePath: flags.file || null,
-      symbol: flags.symbol || null,
-      command: flags.command || null,
-      resultSummary: flags.result || flags.summary || null,
-      confidence: flags.confidence || null,
-    });
+    const out = evidence.add({ root: process.cwd(), claim, classification: flags.classification || flags.class || 'UNKNOWN', sourceType: flags.type || null, filePath: flags.file || null, symbol: flags.symbol || null, command: flags.command || null, resultSummary: flags.result || flags.summary || null, confidence: flags.confidence || null });
     if (!out.ok) return console.log(c.yellow(out.message));
     console.log(c.green(`Evidence #${out.evidenceId} registrada en PBI #${out.item.id}`));
     console.log(`Clasificación: ${out.classification}`);
@@ -206,6 +192,46 @@ function runtimeEvidence({ flags, pos }) {
   process.exit(1);
 }
 
+function runtimeTest({ flags, pos }) {
+  const sub = pos[0];
+  if (sub === 'add') {
+    const out = tests.add({ root: process.cwd(), testType: flags.type || null, command: flags.command || pos.slice(1).join(' ').trim() || null, status: flags.status || 'unknown', summary: flags.summary || null });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.green(`Test #${out.testId} registrado en PBI #${out.item.id}`));
+    console.log(`Status: ${out.status}`);
+    return;
+  }
+  if (sub === 'list') {
+    const out = tests.list({ root: process.cwd() });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    if (!out.rows.length) return console.log('(sin tests)');
+    for (const row of out.rows) console.log(`#${row.id} [${row.status}] ${row.test_type || 'test'} :: ${row.command || row.summary || ''}`);
+    return;
+  }
+  console.error(c.red('uso: capa test <add|list>'));
+  process.exit(1);
+}
+
+function runtimeReview({ flags, pos }) {
+  const sub = pos[0];
+  if (sub === 'add') {
+    const out = reviews.add({ root: process.cwd(), status: flags.status || 'ok', diffSummary: flags.summary || pos.slice(1).join(' ').trim() || null, findings: flags.findings || null, riskLevel: flags.risk || null });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.green(`Review #${out.reviewId} registrada en PBI #${out.item.id}`));
+    console.log(`Status: ${out.status}`);
+    return;
+  }
+  if (sub === 'list') {
+    const out = reviews.list({ root: process.cwd() });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    if (!out.rows.length) return console.log('(sin reviews)');
+    for (const row of out.rows) console.log(`#${row.id} [${row.status}] risk=${row.risk_level || '—'} :: ${row.diff_summary || ''}`);
+    return;
+  }
+  console.error(c.red('uso: capa review <add|list>'));
+  process.exit(1);
+}
+
 function help() {
   console.log(`${c.bold('capa')} v${pkg.version} — Contexto · Alcance · Progreso · Aseguramiento
 
@@ -220,6 +246,8 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('scope')} <add|list>               administra alcance permitido
   ${c.cyan('finding')} <add|list>             registra hallazgos laterales
   ${c.cyan('evidence')} <add|list>            registra evidencia verificable
+  ${c.cyan('test')} <add|list>                registra pruebas del PBI
+  ${c.cyan('review')} <add|list>              registra code review del PBI
 
 ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
@@ -249,6 +277,8 @@ function main() {
     case 'scope': return runtimeScope({ flags, pos });
     case 'finding': return runtimeFinding({ flags, pos });
     case 'evidence': return runtimeEvidence({ flags, pos });
+    case 'test': return runtimeTest({ flags, pos });
+    case 'review': return runtimeReview({ flags, pos });
     case 'init': return init({ root: process.cwd(), dossierDir: flags.dir || 'capa' });
     case 'vision': { const { root, config } = loadConfig(); return vision({ root, config, adr: pos[0], title: flags.title, slug: flags.slug }); }
     case 'new': { const { root, config } = loadConfig(); return newCapa({ root, config, adr: pos[0], objetivo: flags.objetivo, title: flags.title, route: flags.route, frontend: !!flags.frontend }); }
