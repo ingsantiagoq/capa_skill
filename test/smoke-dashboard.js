@@ -42,7 +42,7 @@ function close(server) {
     assert.match(response.headers.get('content-type'), /text\/html/);
     assert.match(body, /CAPA Dashboard/);
     assert.match(body, /PBI activo/);
-    assert.match(body, /Backlog/);
+    assert.match(body, /Ver backlog/);
   } finally {
     await close(server);
     cleanDb();
