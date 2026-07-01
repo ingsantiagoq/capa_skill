@@ -1,7 +1,7 @@
 {
   "name": "@btw/capa-cli",
-  "version": "0.1.0",
-  "description": "CAPA — Contexto · Alcance · Progreso · Aseguramiento · Poder. Dossier por ADR anclado a código (graphify), con doctor anti-teatro. Replicable entre proyectos.",
+  "version": "0.2.0",
+  "description": "CAPA — Contexto · Alcance · Progreso · Aseguramiento. Runtime DB-first para agentes de código, con SQLite, one-step execution y evidencia verificable.",
   "bin": {
     "capa": "bin/capa.js"
   },
@@ -12,14 +12,17 @@
   "scripts": {
     "test": "node test/smoke.js"
   },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1"
+  },
   "peerDependencies": {
     "graphify": ">=0.8"
   },
   "peerDependenciesMeta": {
     "graphify": { "optional": false }
   },
-  "files": ["bin", "lib", "templates", "skill", "platform"],
-  "keywords": ["capa", "adr", "documentation", "graphify", "claude-code", "anti-theater"],
+  "files": ["bin", "lib", "templates", "skill", "platform", ".capa"],
+  "keywords": ["capa", "adr", "sqlite", "graphify", "claude-code", "codex", "anti-theater"],
   "license": "UNLICENSED",
   "private": true
 }

@@ -1,0 +1,32 @@
+{
+  "dbPath": ".capa/capa.db",
+  "schemaPath": ".capa/schema.sql",
+  "defaultBudget": {
+    "max_minutes": 5,
+    "max_tool_calls": 8,
+    "max_bash_commands": 4,
+    "max_file_reads": 5,
+    "max_file_edits": 2,
+    "max_files_touched": 2,
+    "max_git_diff_lines": 200,
+    "allow_auto_fix": false
+  },
+  "states": {
+    "base": [
+      "NEW",
+      "DISCOVERY",
+      "VIABILITY",
+      "CONTEXT",
+      "SCOPE",
+      "GATE",
+      "APPROVAL",
+      "IMPLEMENT",
+      "BUILD",
+      "TEST",
+      "CODE_REVIEW",
+      "CLOSURE",
+      "DONE"
+    ],
+    "optional": ["GRAPHIFY", "REPRODUCE", "ROOT_CAUSE", "LESSONS", "COMPACTED", "BLOCKED"]
+  }
+}
