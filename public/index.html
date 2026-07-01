@@ -34,25 +34,23 @@
 
   <main>
     <section class="grid">
-      <article class="card"><h2>PBI activo</h2><div id="active" class="muted">Cargando...</div></article>
-      <article class="card"><h2>Backlog</h2><div class="metric" id="backlog-count">0</div><p class="muted">PBIs activos o pendientes</p></article>
-      <article class="card stack"><h2>Acciones rápidas</h2><button id="refresh">Actualizar</button><button id="next">Siguiente paso</button><button id="close-pbi">Cerrar PBI</button><button id="close-sprint">Cerrar sprint</button><div id="status" class="muted"></div></article>
+      <article class="card"><h2>PBI activo</h2><div id="active" class="muted">Cargando desde /items/active...</div></article>
+      <article class="card"><h2>Backlog</h2><div class="metric" id="backlog-count">API</div><p class="muted">Consulta /backlog para ver PBIs activos o pendientes.</p></article>
+      <article class="card stack"><h2>Acciones rápidas</h2><p class="muted">Los endpoints de escritura ya existen. La capa visual completa quedará en el siguiente paso.</p></article>
     </section>
 
     <section class="grid">
-      <article class="card"><h2>Backlog</h2><div id="backlog"></div></article>
-      <article class="card"><h2>Detalle del PBI activo</h2><div id="detail" class="muted">Sin detalle todavía.</div></article>
+      <article class="card"><h2>Endpoints de lectura</h2><pre>GET /dashboard
+GET /items/active
+GET /backlog
+GET /items/:id/progress</pre></article>
+      <article class="card"><h2>Endpoints de escritura</h2><pre>POST /evidence
+POST /tests
+POST /reviews
+POST /findings
+POST /close/pbi
+POST /close/sprint</pre></article>
     </section>
-
-    <section class="grid">
-      <form id="evidence-form" class="card stack"><h2>Agregar evidencia</h2><label>Claim <textarea name="claim" required></textarea></label><label>Clasificación <select name="classification"><option>VERIFIED</option><option>PARTIAL</option><option>ASSUMPTION</option><option>UNKNOWN</option></select></label><label>Tipo <input name="type" /></label><label>Comando <input name="command" /></label><label>Resultado <input name="result" /></label><button type="submit">Guardar evidencia</button></form>
-      <form id="test-form" class="card stack"><h2>Registrar test</h2><label>Tipo <input name="type" /></label><label>Comando <input name="command" /></label><label>Status <select name="status"><option>ok</option><option>failed</option><option>unknown</option></select></label><label>Resumen <input name="summary" /></label><button type="submit">Guardar test</button></form>
-      <form id="review-form" class="card stack"><h2>Registrar review</h2><label>Status <select name="status"><option>ok</option><option>changes_requested</option><option>unknown</option></select></label><label>Riesgo <select name="risk"><option>low</option><option>medium</option><option>high</option></select></label><label>Resumen <textarea name="summary"></textarea></label><label>Hallazgos <textarea name="findings"></textarea></label><button type="submit">Guardar review</button></form>
-      <form id="finding-form" class="card stack"><h2>Registrar finding</h2><label>Título <input name="title" required /></label><label>Descripción <textarea name="description"></textarea></label><label>Acción <input name="action" value="record" /></label><label><span><input type="checkbox" name="outside" /> Fuera del PBI actual</span></label><button type="submit">Guardar finding</button></form>
-    </section>
-
-    <section class="card"><h2>Estado API</h2><pre id="raw">{}</pre></section>
   </main>
-  <script src="/app.js"></script>
 </body>
 </html>
