@@ -1,7 +1,7 @@
 {
   "name": "@btw/capa-cli",
-  "version": "0.2.0",
-  "description": "CAPA — Contexto · Alcance · Progreso · Aseguramiento. Runtime DB-first para agentes de código, con SQLite, one-step execution y evidencia verificable.",
+  "version": "0.3.0-alpha.0",
+  "description": "CAPA — Contexto · Alcance · Progreso · Aseguramiento. Runtime DB-first para agentes de código, con SQLite, one-step execution, backlog y evidencia verificable.",
   "bin": {
     "capa": "bin/capa.js",
     "capa-go": "bin/capa-go.js",
@@ -43,7 +43,7 @@
     "graphify": { "optional": false }
   },
   "files": ["bin", "lib", "templates", "skill", "platform", ".capa"],
-  "keywords": ["capa", "adr", "sqlite", "graphify", "claude-code", "codex", "anti-theater"],
+  "keywords": ["capa", "adr", "sqlite", "graphify", "claude-code", "codex", "anti-theater", "backlog", "agent-workflow"],
   "license": "UNLICENSED",
   "private": true
 }

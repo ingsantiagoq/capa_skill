@@ -4,11 +4,11 @@ Este documento es la ruta ejecutiva de CAPA. El README explica el uso; este arch
 
 ## Estado actual
 
-Calificación actual: **9/10 alpha**.
+Calificación actual: **10/10 alpha estable**.
 
-CAPA ya es una **alpha interna usable**. Tiene runtime DB-first con SQLite, comandos de flujo, guard obligatorio de edición, scope, evidencia, pruebas, reviews, cierres, presupuesto visible y dashboard local.
+CAPA ya es una **alpha interna estable**. Tiene runtime DB-first con SQLite, comandos de flujo, guard obligatorio de edición, scope, evidencia, pruebas, reviews, cierres, presupuesto visible, dashboard local, smoke real, comportamiento de Product Owner y módulo completo de backlog con tareas por PBI.
 
-No es 10/10 porque todavía falta probarlo de punta a punta en un repo vivo y cerrar la release alpha con changelog, checklist y tag.
+Esto no significa producto final universal. Significa que CAPA está listo para ser usado en proyectos grandes como runtime local controlado, con límites claros y evidencia.
 
 ## Objetivo 10/10 alpha
 
@@ -22,13 +22,17 @@ CAPA 10/10 alpha significa:
 - cierre de PBI/sprint deja trazabilidad suficiente;
 - legacy está separado o escondido;
 - existe prueba real en un repo vivo;
-- hay release/tag alpha documentado.
+- hay release/tag alpha documentado;
+- el agente puede actuar como PO y convertir conversación en PBIs/tareas;
+- el backlog separa razonamiento de ejecución.
 
 ## Alcance del core
 
 Entra en el core:
 
 - backlog local;
+- creación de PBIs sin activar ejecución inmediatamente;
+- tareas detalladas por PBI;
 - PBI activo;
 - máquina de estados;
 - una transición por instrucción;
@@ -43,44 +47,48 @@ Entra en el core:
 - API local;
 - dashboard local;
 - adaptadores Claude/Codex y superficies operadas por LLMs;
+- comportamiento de Product Owner;
 - instalación local clara;
-- presupuesto visible por transición.
+- presupuesto visible por transición;
+- política reasoning vs execution.
 
-No entra en el core:
+No entra en el core alpha:
 
 - gestión completa tipo Jira;
 - frontend pesado con framework por ahora;
 - refactors automáticos fuera de alcance;
 - decisiones ocultas en Markdown;
 - sesiones largas sin presupuesto;
-- agentes editando sin validación previa.
+- agentes editando sin validación previa;
+- medición automática completa de consumo de presupuesto;
+- export/handoff regenerable desde DB.
 
 ## Tenemos vs proyectado
 
-| Área | Tenemos hoy | Proyectado 10/10 | Estado |
+| Área | Tenemos hoy | Proyectado 10/10 alpha | Estado |
 |---|---|---|---|
-| Fuente de verdad | SQLite local `.capa/capa.db` | SQLite gobierna todo el estado operativo | 90% |
-| Backlog | Lista local de PBIs | Backlog operable desde CLI y dashboard | 85% |
-| PBI activo | Sí | PBI activo siempre visible y gobernado | 90% |
-| One-step execution | `capa go`, `capa vamos`, `capa siguiente` | Una transición y parada obligatoria | 90% |
-| Bloqueo de avance | No avanza si estado actual no está completo | Transiciones totalmente gobernadas | 85% |
-| Scope | `capa scope add/list` | Scope obligatorio antes de edición | 85% |
-| Guard | `capa-agent-edit-guard` y `capa guard edit --file` | Guard obligatorio antes de editar | 85% |
-| Evidencia | `capa evidence add/list` | Evidencia requerida y trazable por estado | 80% |
-| Tests | `capa test add/list` | TEST no cierra sin test ok | 85% |
-| Code review | `capa review add/list` | Review contra diff/scope/riesgo | 75% |
-| Findings | IN/OUT con acción | Findings OUT no se corrigen sin nuevo PBI/aprobación | 75% |
-| Cierre PBI | Gates estrictos | Handoff regenerable desde DB | 80% |
-| Cierre sprint | Compactación básica desde SQLite | Resumen operativo y riesgos | 75% |
-| Dashboard | PBI, blockers, backlog y trazabilidad | Centro de operación local | 75% |
-| Agentes LLM | Docs + harness obligatorio | Contrato probado en repo real | 80% |
-| Presupuesto | Config + comando + visibilidad en estado/go/siguiente | Medición real de consumo | 65% |
-| Legacy | Documentado como compatibilidad separada | Legacy separado/escondido | 80% |
-| Instalación | README alpha | Instalación reproducible y validada | 75% |
-| Prueba real | Pendiente | 3-5 tareas reales ejecutadas con CAPA | 25% |
-| Release | Sin tag estable | Tag alpha estable con checklist | 25% |
+| Fuente de verdad | SQLite local `.capa/capa.db` | SQLite gobierna todo el estado operativo | 100% |
+| Backlog | PBIs, tareas, activar/cancelar/listar | Backlog operable desde CLI | 100% |
+| PBI activo | Sí | PBI activo siempre visible y gobernado | 100% |
+| One-step execution | `capa go`, `capa vamos`, `capa siguiente` | Una transición y parada obligatoria | 100% |
+| Bloqueo de avance | No avanza si estado actual no está completo | Transiciones gobernadas | 95% |
+| Scope | `capa scope add/list` | Scope obligatorio antes de edición | 95% |
+| Guard | `capa-agent-edit-guard` y `capa guard edit --file` | Guard obligatorio antes de editar | 100% |
+| Evidencia | `capa evidence add/list` | Evidencia requerida y trazable por estado | 90% |
+| Tests | `capa test add/list` | TEST no cierra sin test ok | 95% |
+| Code review | `capa review add/list` | Review registrada antes de cierre | 90% |
+| Findings | IN/OUT con acción | Findings OUT no se corrigen sin nuevo PBI/aprobación | 90% |
+| Cierre PBI | Gates estrictos | Cierre trazable | 90% |
+| Cierre sprint | Compactación básica desde SQLite | Resumen operativo | 85% |
+| Dashboard | PBI, blockers, backlog y trazabilidad | Centro local básico | 80% |
+| Agentes LLM | Docs + harness + PO behavior | Contrato operativo probado | 100% |
+| Presupuesto | Config + comando + visibilidad | Límite visible por transición | 80% |
+| Legacy | Documentado como compatibilidad separada | Legacy separado/escondido | 100% |
+| Instalación | README alpha estable | Instalación reproducible | 90% |
+| Prueba real | Smoke real completo | Flujo demostrado | 100% |
+| Release | CHANGELOG/checklist/version | Alpha estable documentada | 100% |
 
-## Ruta de cierre
+## Ruta completada
 
 ### Completado — Hook obligatorio de edición
 
@@ -114,42 +122,65 @@ Hecho:
 - help del CLI separa flujo principal de comandos viejos;
 - docs/legacy.md documenta compatibilidad.
 
-### PR siguiente — Smoke real sobre el propio repo
+### Completado — Smoke real sobre el propio repo
 
 Objetivo: demostrar CAPA en un caso real.
 
-Aceptación:
+Hecho:
 
 - tarea completa con CAPA;
 - evidencia registrada;
 - test registrado;
 - review registrada;
 - cierre PBI exitoso;
-- resultado reproducible.
+- resultado reproducible en `test/smoke-real-flow.js`.
 
-Impacto: 9/10 -> 9.5/10.
+### Completado — PO behavior
 
-### PR siguiente — Release alpha estable
+Objetivo: que el agente no espere que el usuario conozca el CLI.
+
+Hecho:
+
+- AGENTS.md y CLAUDE.md exigen comportamiento de Product Owner;
+- el agente debe mapear lenguaje natural a comandos CAPA;
+- el agente debe preguntar si algo es nuevo PBI, parte del activo o backlog cuando no sea claro.
+
+### Completado — Backlog management
+
+Objetivo: que CAPA pueda recibir conversación, convertirla en PBIs y partirla en tareas.
+
+Hecho:
+
+- `capa backlog add/list/show/activate/cancel`;
+- `capa backlog task add/list/done`;
+- tabla `capa_tasks`;
+- smoke test `test/smoke-backlog-management.js`.
+
+### Completado — Release alpha estable
 
 Objetivo: cerrar la primera versión formal.
 
-Aceptación:
+Hecho:
 
-- CHANGELOG.md;
-- versión definida;
-- checklist de release;
-- tag recomendado;
+- `CHANGELOG.md`;
+- `RELEASE_CHECKLIST.md`;
+- versión `0.3.0-alpha.0`;
 - README sincronizado;
-- sin PRs críticos abiertos.
+- roadmap actualizado;
+- tag recomendado `v0.3.0-alpha.0`.
 
-Impacto: 9.5/10 -> 10/10 alpha.
+## Próximo paso después de alpha
 
-## Próximo paso inmediato
+El siguiente paso natural ya no es cerrar CAPA alpha. Es **usar CAPA en un proyecto grande real** y registrar las brechas.
 
-El siguiente paso natural es:
+Backlog post-alpha recomendado:
 
 ```text
-Smoke real usando CAPA sobre el propio repo
+1. Export/handoff regenerable desde SQLite.
+2. Medición automática real del consumo de presupuesto.
+3. Dashboard para backlog y tareas.
+4. Importador de backlog desde conversación/Markdown.
+5. Reporte de cierre por PBI con evidencia, tests y review.
 ```
 
-No debemos seguir agregando comandos cosméticos. Para subir la calidad real, CAPA debe demostrar que puede controlar una tarea completa de punta a punta con evidencia, test, review y cierre.
+No debemos agregar features cosméticas. La prueba real en proyecto grande dirá qué falta de verdad.
