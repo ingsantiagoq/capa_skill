@@ -74,3 +74,6 @@ jobs:
 
       - name: Run mandatory agent edit guard smoke test
         run: npm run test:agent-edit-guard
+
+      - name: Run transition budget smoke test
+        run: npm run test:budget
