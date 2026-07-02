@@ -4,7 +4,7 @@
 
 CAPA es un runtime local para controlar trabajo asistido por agentes de IA y flujos operados por LLMs. Su objetivo no es producir más Markdown, sino mantener el trabajo pequeño, verificable, persistente y sin scope creep.
 
-Estado actual: **alpha interna usable**.
+Estado actual: **alpha estable interna — 0.3.0-alpha.0**.
 
 ---
 
@@ -17,7 +17,8 @@ Los agentes suelen fallar cuando:
 - arreglan hallazgos laterales sin aprobación;
 - mezclan discovery, implementación, pruebas y review en una sola corrida;
 - dicen que algo está terminado sin evidencia;
-- usan el chat o archivos `.md` como estado confiable.
+- usan el chat o archivos `.md` como estado confiable;
+- ejecutan cambios sin backlog claro ni criterio de PO.
 
 CAPA impone una regla central:
 
@@ -79,6 +80,7 @@ Validar instalación:
 
 ```bash
 capa version
+npm test
 ```
 
 ---
@@ -105,6 +107,27 @@ Luego te detienes. No ejecutes otro `capa go` hasta que el usuario o el flujo lo
 
 ---
 
+## Flujo recomendado para proyectos grandes
+
+En proyectos grandes, no arranques editando. Primero usa CAPA como PO operativo:
+
+```bash
+capa backlog add "Migrar módulo de facturación" --type feature --priority 1
+capa backlog task add --pbi 1 "Definir alcance y criterios de aceptación" --model reasoning
+capa backlog task add --pbi 1 "Implementar primer slice controlado" --model execution --acceptance "smoke test ok"
+capa backlog show 1
+capa backlog activate 1
+capa go
+```
+
+La idea es separar:
+
+```text
+conversación -> PBI -> tareas -> scope -> ejecución -> evidencia -> test -> review -> cierre
+```
+
+---
+
 ## Comandos principales del runtime DB-first
 
 ```bash
@@ -116,7 +139,20 @@ capa vamos
 capa siguiente
 capa completar --status ok --summary "..."
 capa bloquear "motivo"
-capa backlog
+```
+
+Backlog y tareas:
+
+```bash
+capa backlog add "Crear login" --type feature --priority 1
+capa backlog list
+capa backlog show 1
+capa backlog activate 1
+capa backlog cancel 1 --reason "ya no aplica"
+capa backlog task add --pbi 1 "Definir criterios" --model reasoning --acceptance "criterios claros"
+capa backlog task add --pbi 1 "Implementar endpoint" --model execution --acceptance "test ok"
+capa backlog task list --pbi 1
+capa backlog task done 1 --summary "tarea completada"
 ```
 
 Alcance y guard:
@@ -160,6 +196,19 @@ http://127.0.0.1:4739/
 
 ## Cómo debe comportarse un agente
 
+Cuando CAPA está activo en Claude Code, Codex u otra superficie operada por LLMs, el agente debe actuar como **Product Owner práctico** para el usuario final.
+
+Eso significa:
+
+```text
+1. Traducir lenguaje natural a opciones de capa-cli.
+2. Preguntar si algo es nuevo PBI o parte del PBI activo cuando no sea claro.
+3. Convertir solicitudes amplias en backlog y tareas.
+4. Separar razonamiento de ejecución.
+5. Ejecutar solo una transición a la vez.
+6. No editar sin scope y guard.
+```
+
 Cuando el usuario diga:
 
 ```text
@@ -196,6 +245,44 @@ capa guard edit --file ruta/del/archivo
 ```
 
 Si CAPA bloquea, el agente debe parar. No debe buscar atajos.
+
+---
+
+## Política de modelos
+
+CAPA separa razonamiento y ejecución para controlar costo y riesgo.
+
+```text
+reasoning:
+  - actuar como PO;
+  - entender intención ambigua;
+  - crear PBIs;
+  - partir tareas;
+  - definir criterios de aceptación;
+  - decidir alcance y riesgo.
+
+execution:
+  - editar archivos dentro del scope;
+  - correr comandos;
+  - registrar evidencia;
+  - registrar tests;
+  - registrar reviews;
+  - completar una transición.
+```
+
+En operación práctica:
+
+```text
+Opus      -> reasoning / PO / definición / alcance / criterios
+Sonnet    -> execution / implementación / comandos / evidencia
+Kaiku     -> execution / implementación / comandos / evidencia
+```
+
+La política formal está en:
+
+```text
+docs/MODEL_POLICY.md
+```
 
 ---
 
@@ -297,11 +384,12 @@ No requiere React, Angular, Ionic ni Vite. Es local, simple y DB-first.
 
 ---
 
-## Qué ya existe en esta alpha
+## Qué ya existe en esta alpha estable
 
 ```text
 Runtime DB-first con SQLite
-Backlog local
+Backlog local y gestión de PBIs
+Tareas detalladas por PBI
 PBI activo
 One-step execution
 Guard obligatorio para edición
@@ -313,26 +401,29 @@ Reviews
 Cierre de PBI
 Cierre de sprint
 Budget visible por transición
+Smoke real de flujo completo
 API local
 Dashboard local
-Adaptadores iniciales para superficies operadas por LLMs
+Adaptadores para superficies operadas por LLMs
+Comportamiento de Product Owner en el contrato de agente
+Política reasoning vs execution
 Legacy documentado como compatibilidad separada
 ```
 
 ---
 
-## Qué falta antes de llamarlo estable
+## Límites conocidos post-alpha
 
-CAPA todavía no está terminado. Falta:
+CAPA está cerrado como alpha estable, pero todavía faltan mejoras para una beta:
 
 ```text
-1. Probarlo en varios repos reales.
-2. Export/handoff regenerable desde SQLite.
-3. Medición automática real del consumo de presupuesto.
-4. Release alpha estable con CHANGELOG, checklist y tag.
+1. Export/handoff regenerable desde SQLite.
+2. Medición automática real del consumo de presupuesto.
+3. Más acciones de backlog/tareas desde dashboard.
+4. Validarlo en varios repos grandes reales.
 ```
 
-La ruta ejecutiva para cerrar esa brecha está en:
+La ruta ejecutiva está en:
 
 ```text
 docs/ROADMAP.md
@@ -353,6 +444,7 @@ bin/
 lib/runtime/
   db.js
   items.js
+  backlog.js
   guard.js
   scope.js
   findings.js
@@ -366,9 +458,38 @@ lib/runtime/
   budget.js
 docs/
   ROADMAP.md
+  MODEL_POLICY.md
   legacy.md
 public/
   index.html
+```
+
+---
+
+## Release
+
+Versión actual:
+
+```text
+0.3.0-alpha.0
+```
+
+Checklist:
+
+```text
+RELEASE_CHECKLIST.md
+```
+
+Changelog:
+
+```text
+CHANGELOG.md
+```
+
+Tag recomendado:
+
+```text
+v0.3.0-alpha.0
 ```
 
 ---
