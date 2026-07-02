@@ -1,89 +1,160 @@
-# ROADMAP
+# CAPA Roadmap to 10/10
 
-Estado actual: **7/10**  
-Objetivo: **10/10**
+Este documento es la ruta ejecutiva de CAPA. El README explica el uso; este archivo resume alcance, progreso y cierre del producto.
 
----
+## Estado actual
 
-## Alcance del producto
+Calificación actual: **7/10**.
 
-CAPA es un runtime local, DB-first y verificable para controlar trabajo asistido por agentes y cualquier superficie operada por LLMs. La fuente de verdad operativa vive en SQLite, no en el chat ni en archivos Markdown.
+CAPA ya es una **alpha interna usable**. Tiene runtime DB-first con SQLite, comandos de flujo, guard, scope, evidencia, pruebas, reviews, cierres y dashboard local.
 
----
+No es 10/10 porque aún depende parcialmente de disciplina del agente, no tiene presupuesto operativo aplicado y todavía convive con superficie legacy.
 
-## Qué ya está hecho
+## Objetivo 10/10 alpha
 
-- Runtime local con SQLite como fuente de verdad.
-- Backlog, PBI activo y ejecución de una transición por vez.
-- Guard de edición y scope aprobado.
-- Registro de findings, evidencia, tests y reviews.
-- Cierre de PBI y cierre de sprint.
-- API local y dashboard local.
-- Adaptadores iniciales para superficies usadas por agentes.
+CAPA 10/10 alpha significa:
 
----
+- instalación clara sin contexto externo;
+- Claude/Codex no editan sin pasar por `capa guard edit --file`;
+- cada transición tiene límites visibles;
+- SQLite gobierna el estado operativo;
+- dashboard permite entender backlog, progreso, blockers y evidencia;
+- cierre de PBI/sprint deja trazabilidad suficiente;
+- legacy está separado o escondido;
+- existe prueba real en un repo vivo;
+- hay release/tag alpha documentado.
 
-## Qué falta para llegar a 10/10
+## Alcance del core
 
-### 1) Hook/adaptador agnóstico del proveedor
+Entra en el core:
 
-Endurecer el punto de integración para que funcione con cualquier LLM y no quede acoplado a Codex, Claude u otra superficie concreta.
+- backlog local;
+- PBI activo;
+- máquina de estados;
+- una transición por instrucción;
+- scope aprobado;
+- guard antes de edición;
+- evidencia;
+- tests;
+- code review;
+- findings dentro/fuera de alcance;
+- cierre de PBI;
+- cierre de sprint;
+- API local;
+- dashboard local;
+- adaptadores Claude/Codex;
+- instalación local clara.
 
-### 2) Presupuesto por transición
+No entra en el core:
 
-Limitar y registrar explícitamente:
+- gestión completa tipo Jira;
+- frontend pesado con framework por ahora;
+- refactors automáticos fuera de alcance;
+- decisiones ocultas en Markdown;
+- sesiones largas sin presupuesto;
+- agentes editando sin validación previa.
 
-- archivos leídos;
-- archivos editados;
-- comandos ejecutados;
-- tamaño del diff.
+## Tenemos vs proyectado
 
-### 3) Separación de legacy
+| Área | Tenemos hoy | Proyectado 10/10 | Estado |
+|---|---|---|---|
+| Fuente de verdad | SQLite local `.capa/capa.db` | SQLite gobierna todo el estado operativo | 85% |
+| Backlog | Lista local de PBIs | Backlog operable desde CLI y dashboard | 80% |
+| PBI activo | Sí | PBI activo siempre visible y gobernado | 85% |
+| One-step execution | `capa go`, `capa vamos`, `capa siguiente` | Una transición y parada obligatoria | 85% |
+| Bloqueo de avance | No avanza si estado actual no está completo | Transiciones totalmente gobernadas | 80% |
+| Scope | `capa scope add/list` | Scope obligatorio antes de edición | 75% |
+| Guard | `capa guard edit --file` | Hook obligatorio antes de editar | 60% |
+| Evidencia | `capa evidence add/list` | Evidencia requerida y trazable por estado | 75% |
+| Tests | `capa test add/list` | TEST no cierra sin test ok | 80% |
+| Code review | `capa review add/list` | Review contra diff/scope/riesgo | 70% |
+| Findings | IN/OUT con acción | Findings OUT no se corrigen sin nuevo PBI/aprobación | 70% |
+| Cierre PBI | Gates estrictos | Handoff regenerable desde DB | 75% |
+| Cierre sprint | Compactación básica desde SQLite | Resumen operativo y riesgos | 70% |
+| Dashboard | PBI, blockers, backlog y trazabilidad | Centro de operación local | 70% |
+| Claude/Codex | Docs iniciales | Hooks obligatorios y contrato probado | 55% |
+| Presupuesto | Config conceptual | Límites reales de lecturas, edits, comandos y diff | 25% |
+| Legacy | Sigue mezclado | Legacy separado/escondido | 30% |
+| Instalación | README alpha | Instalación reproducible y validada | 70% |
+| Prueba real | Pendiente | 3-5 tareas reales ejecutadas con CAPA | 20% |
+| Release | Sin tag estable | Tag alpha estable con checklist | 20% |
 
-Ocultar, aislar o retirar comandos legacy para que la experiencia principal sea corta, obvia y segura.
+## Ruta de cierre
 
-### 4) Validación en repos reales
+### PR #25 — Hook obligatorio de edición
 
-Probar CAPA en varios repos y registrar:
+Objetivo: que Claude/Codex no editen sin pasar por CAPA.
 
-- fricciones de adopción;
-- falsos bloqueos;
-- huecos de scope;
-- fallas del guard;
-- evidencia de cierre.
+Aceptación:
 
-### 5) Onboarding de agentes
+- AGENTS.md y CLAUDE.md explican el contrato obligatorio.
+- Existe hook/harness para validar `capa guard edit --file` antes de edición.
+- Smoke test valida el contrato de agente.
+- El flujo dice qué hacer cuando CAPA bloquea.
 
-Reducir el costo de entrada para que un agente entienda:
+Impacto: 7/10 -> 8/10.
 
-- qué puede hacer;
-- cuándo debe detenerse;
-- cómo registrar evidencia;
-- cómo cerrar una transición sin improvisar.
+### PR #26 — Budget por transición
 
-### 6) Export/handoff desde SQLite
+Objetivo: limitar deriva y sesiones largas.
 
-Permitir reconstruir el estado operativo desde `.capa/capa.db` en formatos útiles para continuidad, auditoría y transferencia entre sesiones.
+Aceptación:
 
----
+- config define límites de archivos leídos, archivos editados, comandos y diff;
+- runtime puede leer presupuesto;
+- comando/status muestra presupuesto;
+- smoke test valida que el presupuesto existe y se reporta.
 
-## PRs o slices esperados
+Impacto: 8/10 -> 8.7/10.
 
-- PR 1: hook/adaptador agnóstico del proveedor.
-- PR 2: presupuesto por transición.
-- PR 3: limpieza y aislamiento de legacy.
-- PR 4: pruebas en repos reales y ajuste de guardrails.
-- PR 5: onboarding y handoff/export desde SQLite.
+### PR #27 — Separar legacy del runtime
 
----
+Objetivo: reducir confusión del agente.
 
-## Criterios de aceptación para declarar CAPA estable
+Aceptación:
 
-CAPA puede declararse estable cuando:
+- README diferencia runtime actual de legacy;
+- help del CLI separa flujo principal de comandos viejos;
+- docs/legacy.md documenta compatibilidad.
 
-- el flujo principal funciona con cualquier superficie operada por LLMs;
-- cada transición tiene presupuesto y guardrails claros;
-- no hay dependencia operativa en Markdown para conocer el estado;
-- el estado puede exportarse o transferirse desde SQLite;
-- el runtime fue probado en repos reales con evidencia suficiente;
-- onboarding, test y review permiten cerrar PBIs sin improvisación.
+Impacto: 8.7/10 -> 9/10.
+
+### PR #28 — Smoke real sobre el propio repo
+
+Objetivo: demostrar CAPA en un caso real.
+
+Aceptación:
+
+- tarea completa con CAPA;
+- evidencia registrada;
+- test registrado;
+- review registrada;
+- cierre PBI exitoso;
+- resultado reproducible.
+
+Impacto: 9/10 -> 9.5/10.
+
+### PR #29 — Release alpha estable
+
+Objetivo: cerrar la primera versión formal.
+
+Aceptación:
+
+- CHANGELOG.md;
+- versión definida;
+- checklist de release;
+- tag recomendado;
+- README sincronizado;
+- sin PRs críticos abiertos.
+
+Impacto: 9.5/10 -> 10/10 alpha.
+
+## Próximo paso inmediato
+
+El siguiente paso natural es:
+
+```text
+PR #25 — Hook obligatorio de edición para agentes
+```
+
+No debemos seguir agregando comandos cosméticos. Para subir la calidad real, CAPA debe dejar de depender de la buena conducta del agente y empezar a imponer el contrato de edición.
