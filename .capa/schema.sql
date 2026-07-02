@@ -14,6 +14,21 @@ CREATE TABLE IF NOT EXISTS capa_items (
   completed_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS capa_tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  item_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  acceptance TEXT,
+  status TEXT NOT NULL DEFAULT 'todo',
+  owner_model TEXT NOT NULL DEFAULT 'sonnet',
+  position INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  completed_at TEXT,
+  FOREIGN KEY (item_id) REFERENCES capa_items(id)
+);
+
 CREATE TABLE IF NOT EXISTS capa_progress (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   item_id INTEGER NOT NULL,
@@ -113,5 +128,6 @@ CREATE TABLE IF NOT EXISTS capa_closures (
 
 CREATE INDEX IF NOT EXISTS idx_capa_items_status ON capa_items(status);
 CREATE INDEX IF NOT EXISTS idx_capa_items_active ON capa_items(status, updated_at);
+CREATE INDEX IF NOT EXISTS idx_capa_tasks_item ON capa_tasks(item_id, position);
 CREATE INDEX IF NOT EXISTS idx_capa_progress_item ON capa_progress(item_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_capa_evidence_item ON capa_evidence(item_id, created_at);
