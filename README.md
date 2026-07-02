@@ -35,6 +35,28 @@ Si SQLite y un Markdown se contradicen, gana SQLite.
 
 ---
 
+## Superficies del producto
+
+CAPA tiene dos superficies claramente separadas:
+
+```text
+1. Runtime DB-first
+   Es el core actual. Usa `.capa/capa.db` como fuente de verdad.
+
+2. Legacy dossier
+   Comandos antiguos de dossier/Graphify/Markdown conservados por compatibilidad.
+```
+
+Para trabajo nuevo con agentes, usa siempre el **runtime DB-first**.
+
+Los comandos legacy no deben usarse para inferir PBI activo, progreso operativo, evidencias o cierres. La referencia de compatibilidad está en:
+
+```text
+docs/legacy.md
+```
+
+---
+
 ## Instalación local
 
 Requisitos:
@@ -83,11 +105,12 @@ Luego te detienes. No ejecutes otro `capa go` hasta que el usuario o el flujo lo
 
 ---
 
-## Comandos principales
+## Comandos principales del runtime DB-first
 
 ```bash
 capa iniciar "Título del PBI"
 capa estado
+capa budget
 capa go
 capa vamos
 capa siguiente
@@ -102,6 +125,7 @@ Alcance y guard:
 capa scope add src --reason "carpeta permitida para implementación"
 capa scope list
 capa guard edit --file src/app.js
+capa-agent-edit-guard --file src/app.js
 ```
 
 Evidencia, pruebas, review y hallazgos:
@@ -160,6 +184,12 @@ Y obedecer esto:
 ```
 
 Antes de editar cualquier archivo:
+
+```bash
+capa-agent-edit-guard --file ruta/del/archivo
+```
+
+Comando equivalente de bajo nivel:
 
 ```bash
 capa guard edit --file ruta/del/archivo
@@ -223,6 +253,31 @@ capa completar --status ok --summary "done"
 
 ---
 
+## Presupuesto por transición
+
+CAPA muestra un presupuesto operativo para reducir deriva:
+
+```bash
+capa budget
+```
+
+Valores actuales:
+
+```text
+max_minutes: 5
+max_tool_calls: 8
+max_bash_commands: 4
+max_file_reads: 5
+max_file_edits: 2
+max_files_touched: 2
+max_git_diff_lines: 200
+allow_auto_fix: false
+```
+
+El presupuesto aparece también en `capa estado`, `capa go` y `capa siguiente`.
+
+---
+
 ## Dashboard
 
 El dashboard local muestra:
@@ -249,7 +304,7 @@ Runtime DB-first con SQLite
 Backlog local
 PBI activo
 One-step execution
-Guard para edición
+Guard obligatorio para edición
 Scope aprobado
 Findings IN/OUT
 Evidence
@@ -257,9 +312,11 @@ Tests
 Reviews
 Cierre de PBI
 Cierre de sprint
+Budget visible por transición
 API local
 Dashboard local
 Adaptadores iniciales para superficies operadas por LLMs
+Legacy documentado como compatibilidad separada
 ```
 
 ---
@@ -269,12 +326,10 @@ Adaptadores iniciales para superficies operadas por LLMs
 CAPA todavía no está terminado. Falta:
 
 ```text
-1. Hook/adaptador obligatorio más fuerte y agnóstico del proveedor para cualquier LLM.
-2. Presupuesto por transición: archivos leídos, archivos editados, comandos, diff.
-3. Separar o esconder comandos legacy.
-4. Probarlo en varios repos reales.
-5. Mejorar onboarding de agentes.
-6. Export/handoff regenerable desde SQLite.
+1. Probarlo en varios repos reales.
+2. Export/handoff regenerable desde SQLite.
+3. Medición automática real del consumo de presupuesto.
+4. Release alpha estable con CHANGELOG, checklist y tag.
 ```
 
 La ruta ejecutiva para cerrar esa brecha está en:
@@ -294,6 +349,7 @@ docs/ROADMAP.md
 bin/
   capa.js
   capa-go.js
+  capa-agent-edit-guard.js
 lib/runtime/
   db.js
   items.js
@@ -307,6 +363,10 @@ lib/runtime/
   sprint.js
   api.js
   exit-criteria.js
+  budget.js
+docs/
+  ROADMAP.md
+  legacy.md
 public/
   index.html
 ```
