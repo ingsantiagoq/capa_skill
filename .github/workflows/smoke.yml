@@ -65,3 +65,6 @@ jobs:
 
       - name: Run CAPA go smoke test
         run: npm run test:go
+
+      - name: Run go alias smoke test
+        run: npm run test:go-alias
