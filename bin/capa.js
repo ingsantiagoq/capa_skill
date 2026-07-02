@@ -13,6 +13,7 @@ const { runDashboard } = require('../lib/dashboard');
 const { install, uninstall } = require('../lib/install');
 const { runPanel } = require('../lib/panel');
 const runtime = require('../lib/runtime/items');
+const backlog = require('../lib/runtime/backlog');
 const guard = require('../lib/runtime/guard');
 const scope = require('../lib/runtime/scope');
 const findings = require('../lib/runtime/findings');
@@ -94,10 +95,77 @@ function runtimeStatus() {
   printBudget();
 }
 
-function runtimeBacklog() {
-  const rows = runtime.list({ root: process.cwd() });
+function printBacklogRows(rows) {
   if (!rows.length) return console.log('(backlog vacío)');
-  for (const r of rows) console.log(`#${r.id} [${r.status}] P${r.priority} ${r.title} :: ${r.current_state} -> ${r.next_state || '—'}`);
+  for (const r of rows) console.log(`#${r.id} [${r.status}] P${r.priority} ${r.type} :: ${r.title} :: ${r.current_state} -> ${r.next_state || '—'}`);
+}
+
+function runtimeBacklog({ flags, pos }) {
+  const sub = pos[0] || 'list';
+  if (sub === 'list') return printBacklogRows(backlog.list({ root: process.cwd(), status: flags.status || null }));
+  if (sub === 'add') {
+    const title = pos.slice(1).join(' ').trim();
+    if (!title) { console.error(c.red('uso: capa backlog add "titulo" [--description "..."] [--type feature] [--priority 2]')); process.exit(1); }
+    const item = backlog.add({ root: process.cwd(), title, description: flags.description || null, type: flags.type || 'task', priority: flags.priority || 3 });
+    console.log(c.green(`PBI agregado al backlog #${item.id}`));
+    console.log(`${item.title}`);
+    return;
+  }
+  if (sub === 'show') {
+    const out = backlog.show({ root: process.cwd(), id: pos[1] });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    printRuntimeItem(out.item);
+    if (!out.tasks.length) return console.log('(sin tareas)');
+    for (const task of out.tasks) console.log(`  - #${task.id} [${task.status}] ${task.position}. ${task.title} :: model=${task.owner_model}`);
+    return;
+  }
+  if (sub === 'activate') {
+    const out = backlog.activate({ root: process.cwd(), id: pos[1] });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.green(`PBI activo #${out.item.id}`));
+    console.log(out.item.title);
+    return;
+  }
+  if (sub === 'cancel') {
+    const out = backlog.cancel({ root: process.cwd(), id: pos[1], reason: flags.reason || 'Cancelled from backlog' });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.yellow(`PBI cancelado #${out.item.id}`));
+    return;
+  }
+  if (sub === 'task') return runtimeBacklogTask({ flags, pos: pos.slice(1) });
+  console.error(c.red('uso: capa backlog <list|add|show|activate|cancel|task>'));
+  process.exit(1);
+}
+
+function runtimeBacklogTask({ flags, pos }) {
+  const sub = pos[0];
+  if (sub === 'add') {
+    const itemId = flags.pbi || flags.item || pos[1];
+    const title = flags.title || pos.slice(itemId === pos[1] ? 2 : 1).join(' ').trim();
+    if (!itemId || !title) { console.error(c.red('uso: capa backlog task add --pbi <id> "titulo" [--acceptance "..."] [--model sonnet]')); process.exit(1); }
+    const out = backlog.addTask({ root: process.cwd(), itemId, title, description: flags.description || null, acceptance: flags.acceptance || null, ownerModel: flags.model || flags['owner-model'] || 'sonnet' });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.green(`Tarea #${out.task.id} agregada al PBI #${out.item.id}`));
+    console.log(`${out.task.title} :: model=${out.task.owner_model}`);
+    return;
+  }
+  if (sub === 'list') {
+    const itemId = flags.pbi || flags.item || pos[1];
+    const out = backlog.listTasks({ root: process.cwd(), itemId });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    if (!out.tasks.length) return console.log('(sin tareas)');
+    for (const task of out.tasks) console.log(`#${task.id} [${task.status}] ${task.position}. ${task.title} :: model=${task.owner_model}${task.acceptance ? ` :: acceptance=${task.acceptance}` : ''}`);
+    return;
+  }
+  if (sub === 'done') {
+    const taskId = pos[1] || flags.task;
+    const out = backlog.doneTask({ root: process.cwd(), taskId, summary: flags.summary || 'Task done' });
+    if (!out.ok) return console.log(c.yellow(out.message));
+    console.log(c.green(`Tarea cerrada #${out.task.id}`));
+    return;
+  }
+  console.error(c.red('uso: capa backlog task <add|list|done>'));
+  process.exit(1);
 }
 
 function runtimeNext() {
@@ -304,7 +372,7 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('siguiente')}                      inicia una sola transición one-step
   ${c.cyan('completar')} [--status ok]        registra cierre de transición
   ${c.cyan('bloquear')} "motivo"              bloquea PBI activo
-  ${c.cyan('backlog')}                        lista backlog local
+  ${c.cyan('backlog')} <list|add|show|activate|cancel|task> gestiona backlog, PBIs y tareas
   ${c.cyan('guard')} <acción> [--file ruta]   valida si una acción está permitida
   ${c.cyan('scope')} <add|list>               administra alcance permitido
   ${c.cyan('finding')} <add|list>             registra hallazgos laterales
@@ -314,6 +382,13 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('cerrar')} pbi                     cierra PBI con gates mínimos
   ${c.cyan('cerrar')} sprint                  compacta sprint desde SQLite
   ${c.cyan('api')} [--port 4739]              expone API local para dashboard/frontend
+
+${c.bold('Backlog examples:')}
+  ${c.cyan('backlog add')} "Crear login" --type feature --priority 1
+  ${c.cyan('backlog activate')} 3
+  ${c.cyan('backlog task add')} --pbi 3 "Crear endpoint" --model sonnet --acceptance "test ok"
+  ${c.cyan('backlog task list')} --pbi 3
+  ${c.cyan('backlog task done')} 7 --summary "implementado"
 
 ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
@@ -340,7 +415,7 @@ function main() {
     case 'siguiente': case 'next': return runtimeNext();
     case 'completar': case 'complete': return runtimeComplete({ flags });
     case 'bloquear': case 'block': return runtimeBlock({ pos });
-    case 'backlog': return runtimeBacklog();
+    case 'backlog': return runtimeBacklog({ flags, pos });
     case 'guard': return runtimeGuard({ flags, pos });
     case 'scope': return runtimeScope({ flags, pos });
     case 'finding': return runtimeFinding({ flags, pos });
