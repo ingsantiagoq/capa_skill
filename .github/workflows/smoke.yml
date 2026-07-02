@@ -77,3 +77,6 @@ jobs:
 
       - name: Run transition budget smoke test
         run: npm run test:budget
+
+      - name: Run real CAPA flow smoke test
+        run: npm run test:real-flow
