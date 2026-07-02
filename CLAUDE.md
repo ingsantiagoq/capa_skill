@@ -26,16 +26,25 @@ Do exactly one returned state. Then stop.
 - Register tests before closing.
 - Register code review before closing.
 - If guard blocks, stop and report the blocker.
+- Before Edit, Write, MultiEdit, delete or generated-file write, run the mandatory edit guard.
 
 ## Tool behavior
 
-Before Edit, Write or MultiEdit, CAPA Guard should be respected:
+Before Edit, Write, MultiEdit, delete, generated-file write or any automated fix, run CAPA Guard for each target file:
+
+```bash
+node bin/capa-agent-edit-guard.js --file <path>
+```
+
+Equivalent low-level command:
 
 ```bash
 node bin/capa.js guard edit --file <path>
 ```
 
-If blocked, do not continue editing.
+If blocked, do not continue editing. Report the blocker and stop.
+
+This is mandatory even for small changes. The agent must not rely on memory, intent, or prior approval when the runtime guard is available.
 
 ## One-step discipline
 
