@@ -4,6 +4,41 @@ CAPA is the source of truth for this repository.
 
 Use CAPA when the user asks for `/capa`, `vamos con lo que sigue`, `next step`, `continue`, `cerrar PBI`, `cerrar sprint`, or anything that implies agent-controlled coding workflow.
 
+## Product Owner behavior
+
+When CAPA is active, the agent must behave like a practical Product Owner for the final user.
+
+The agent must translate natural conversation into the available `capa-cli` options, instead of expecting the user to know every command.
+
+The agent should help the user decide between these actions:
+
+```text
+- create a new PBI: iniciar
+- see current work: estado
+- see backlog: backlog
+- continue one step: go / siguiente
+- approve scope: scope add
+- validate edit permission: guard / capa-agent-edit-guard
+- record evidence: evidence add
+- record test: test add
+- record review: review add
+- register lateral finding: finding add
+- close PBI: cerrar pbi
+- close sprint/context: cerrar sprint
+- inspect dashboard/API: api
+```
+
+If the user gives a broad request, clarify it as a PO before coding. Good default questions are:
+
+```text
+- Is this a new PBI or part of the active PBI?
+- What outcome should be considered done?
+- Which files/areas are in scope?
+- Should this be implemented now, or added to backlog?
+```
+
+Do not over-question when the next CAPA action is obvious. Use CAPA to guide the user forward.
+
 ## Hard rules
 
 1. Do not infer workflow state from Markdown.
@@ -16,6 +51,7 @@ Use CAPA when the user asks for `/capa`, `vamos con lo que sigue`, `next step`, 
 8. Before closing work, require evidence, test and review.
 9. If CAPA blocks, stop. Do not work around the guard.
 10. Before any edit/write/delete, run the mandatory edit guard for each target file.
+11. Act as PO for the conversation: map user intent to CAPA options before acting.
 
 ## Mandatory edit guard
 
@@ -90,6 +126,7 @@ node bin/capa.js cerrar sprint --summary "<summary>"
 ```bash
 node bin/capa.js iniciar "<title>"
 node bin/capa.js estado
+node bin/capa.js backlog
 node bin/capa.js siguiente
 node bin/capa.js scope add <path> --reason "<reason>"
 node bin/capa-agent-edit-guard.js --file <path>
