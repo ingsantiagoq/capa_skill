@@ -53,6 +53,8 @@ async function request(base, method, pathname, body = null) {
     const active = await request(base, 'GET', '/items/active');
     assert.equal(active.status, 200);
     assert.equal(active.payload.item.title, 'API smoke PBI');
+    assert.ok(Array.isArray(active.payload.status.exitBlockers));
+    assert.ok(Array.isArray(active.payload.status.closeBlockers));
 
     const backlog = await request(base, 'GET', '/backlog');
     assert.equal(backlog.status, 200);
@@ -61,19 +63,23 @@ async function request(base, method, pathname, body = null) {
     const dashboard = await request(base, 'GET', '/dashboard');
     assert.equal(dashboard.status, 200);
     assert.equal(dashboard.payload.active.title, 'API smoke PBI');
+    assert.ok(Array.isArray(dashboard.payload.activeStatus.exitBlockers));
+    assert.ok(Array.isArray(dashboard.payload.activeStatus.closeBlockers));
 
     const blockedGuard = await request(base, 'POST', '/guard', { action: 'edit', file: 'src/app.js' });
     assert.equal(blockedGuard.status, 409);
     assert.equal(blockedGuard.payload.allowed, false);
 
-    const next = await request(base, 'POST', '/next');
-    assert.equal(next.status, 200);
-    assert.equal(next.payload.ok, true);
+    const nextBlocked = await request(base, 'POST', '/next');
+    assert.equal(nextBlocked.status, 409);
+    assert.equal(nextBlocked.payload.ok, false);
+    assert.match(nextBlocked.payload.message, /must be completed before moving/);
 
     const progress = await request(base, 'GET', `/items/${active.payload.item.id}/progress`);
     assert.equal(progress.status, 200);
     assert.equal(progress.payload.item.title, 'API smoke PBI');
     assert.ok(progress.payload.progress.length >= 2);
+    assert.ok(Array.isArray(progress.payload.status.exitBlockers));
   } finally {
     await close(server);
     cleanDb();
