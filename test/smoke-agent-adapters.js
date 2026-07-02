@@ -22,6 +22,8 @@ for (const content of [agents, claude, codex, claudeNotes]) {
   assert.match(content, /node bin\/capa\.js siguiente/);
   assert.match(content, /guard/);
   assert.match(content, /finding/);
+  assert.match(content, /node bin\/capa-agent-edit-guard\.js --file <path>/);
+  assert.match(content, /If .*blocks?, stop|If blocked, do not continue editing|If CAPA blocks, stop/);
 }
 
 assert.match(agents, /CAPA is the source of truth/);
@@ -31,6 +33,10 @@ assert.match(claudeNotes, /Token discipline/);
 assert.match(codex, /across LLM-operated workflows/);
 assert.match(claudeNotes, /across LLM surfaces/);
 assert.match(claude, /broader CAPA contract/);
+assert.match(agents, /Mandatory edit guard/);
+assert.match(claude, /mandatory edit guard/);
+assert.match(codex, /Mandatory edit guard/);
+assert.match(claudeNotes, /Mandatory edit guard/);
 
 assert.equal(platformConfig({ platform: 'claude' }).contractFile, 'CLAUDE.md');
 assert.equal(platformConfig({ platform: 'codex' }).contractFile, 'AGENTS.md');
