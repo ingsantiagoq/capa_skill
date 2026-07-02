@@ -59,3 +59,6 @@ jobs:
 
       - name: Run CAPA next transition smoke test
         run: npm run test:next
+
+      - name: Run CAPA strict close smoke test
+        run: node test/smoke-strict-close.js
