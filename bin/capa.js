@@ -103,6 +103,20 @@ function runtimeNext() {
   console.log('Regla: ejecuta solo este estado, registra evidencia y detente.');
 }
 
+function runtimeGo() {
+  console.log(c.bold('CAPA GO'));
+  const out = runtime.moveNext({ root: process.cwd() });
+  if (!out.ok) {
+    console.log(c.yellow(out.message));
+    console.log('No avances ni edites. Completa el estado actual primero.');
+    return;
+  }
+  console.log(`PBI: #${out.item.id} ${out.item.title}`);
+  console.log(`Estado a ejecutar: ${out.state}`);
+  console.log(`Próximo estado: ${out.following || '—'}`);
+  console.log('Regla: haz solo este estado, registra evidencia si aplica, completa y detente.');
+}
+
 function runtimeComplete({ flags }) {
   const out = runtime.complete({ root: process.cwd(), status: flags.status || 'ok', summary: flags.summary || 'transition completed' });
   if (!out.ok) return console.log(c.yellow(out.message));
@@ -276,6 +290,7 @@ function help() {
 ${c.bold('Runtime DB-first:')}
   ${c.cyan('iniciar')} "titulo"              crea PBI activo en .capa/capa.db
   ${c.cyan('estado')}                         muestra PBI activo DB-first
+  ${c.cyan('go')} / ${c.cyan('vamos')}        flujo natural: avanza una transición y se detiene
   ${c.cyan('siguiente')}                      inicia una sola transición one-step
   ${c.cyan('completar')} [--status ok]        registra cierre de transición
   ${c.cyan('bloquear')} "motivo"              bloquea PBI activo
@@ -310,6 +325,7 @@ function main() {
   switch (cmd) {
     case 'iniciar': case 'start': return runtimeStart({ flags, pos });
     case 'estado': case 'active': return runtimeStatus();
+    case 'go': case 'vamos': case 'seguir': case 'next-step': return runtimeGo();
     case 'siguiente': case 'next': return runtimeNext();
     case 'completar': case 'complete': return runtimeComplete({ flags });
     case 'bloquear': case 'block': return runtimeBlock({ pos });
