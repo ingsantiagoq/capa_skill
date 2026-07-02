@@ -30,10 +30,20 @@ Then do exactly one returned state.
 - NEW/DISCOVERY: inspect and gather evidence only.
 - PLAN: define minimal approach, no edits.
 - SCOPE: add allowed paths.
-- IMPLEMENT: edit only allowed paths. Run `node bin/capa.js guard edit --file <path>` before touching a file; if the guard blocks, stop.
+- IMPLEMENT: edit only allowed paths after `node bin/capa-agent-edit-guard.js --file <path>` passes.
 - TEST: run or register tests.
 - CODE_REVIEW: review current diff only.
 - DONE: close PBI if gates pass.
+
+## Mandatory edit guard
+
+Before Edit, Write, MultiEdit, delete, generated-file write or auto-fix, run:
+
+```bash
+node bin/capa-agent-edit-guard.js --file <path>
+```
+
+If CAPA blocks, stop and report the blocker. Do not try a different tool, path or workaround.
 
 ## Lateral findings
 
