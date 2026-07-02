@@ -28,11 +28,11 @@ run(['siguiente']);
 nextOk('Discovery complete');
 nextOk('Viability complete');
 nextOk('Context complete');
+assert.match(run(['scope', 'add', 'src', '--reason', 'implementation folder']), /Scope agregado/);
 nextOk('Scope complete');
 nextOk('Gate complete');
 nextOk('Approval complete');
 
-assert.match(run(['scope', 'add', 'src', '--reason', 'implementation folder']), /Scope agregado/);
 assert.match(run(['scope', 'list']), /src/);
 assert.equal(attempt(['guard', 'edit', '--file', 'src/app.js']).status, 0);
 assert.equal(attempt(['guard', 'edit', '--file', 'other/app.js']).status, 2);
