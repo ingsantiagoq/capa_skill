@@ -71,3 +71,6 @@ jobs:
 
       - name: Run state exit criteria smoke test
         run: npm run test:state-exit
+
+      - name: Run mandatory agent edit guard smoke test
+        run: npm run test:agent-edit-guard

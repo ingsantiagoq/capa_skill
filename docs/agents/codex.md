@@ -24,15 +24,25 @@ Do not assume Codex is the only supported surface.
 5. Register evidence/test/review/finding as needed.
 6. Stop after the transition.
 
-## Editing rules
+## Mandatory edit guard
 
-Before changing a file during IMPLEMENT:
+Before changing, writing, deleting or generating a file during IMPLEMENT, run:
+
+```bash
+node bin/capa-agent-edit-guard.js --file <path>
+```
+
+Equivalent low-level command:
 
 ```bash
 node bin/capa.js guard edit --file <path>
 ```
 
-If the guard blocks, stop.
+If the guard blocks, stop. Do not edit, do not retry around the guard, and do not move the file change to a different path.
+
+The mandatory edit guard applies to normal edits, new files, deletes, generated files and automated fixes.
+
+## Editing rules
 
 Do not edit outside approved scope. Add scope only when the state is SCOPE or when explicitly instructed by the user.
 
