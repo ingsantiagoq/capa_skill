@@ -68,3 +68,6 @@ jobs:
 
       - name: Run go alias smoke test
         run: npm run test:go-alias
+
+      - name: Run state exit criteria smoke test
+        run: npm run test:state-exit
