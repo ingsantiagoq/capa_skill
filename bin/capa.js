@@ -22,6 +22,7 @@ const reviews = require('../lib/runtime/reviews');
 const closure = require('../lib/runtime/closure');
 const sprint = require('../lib/runtime/sprint');
 const api = require('../lib/runtime/api');
+const budget = require('../lib/runtime/budget');
 
 const pkg = require('../package.json');
 
@@ -74,6 +75,11 @@ function printRuntimeItem(item) {
   console.log(`updated: ${item.updated_at}`);
 }
 
+function printBudget() {
+  console.log(c.bold('CAPA BUDGET'));
+  for (const line of budget.lines(process.cwd())) console.log(line);
+}
+
 function runtimeStart({ flags, pos }) {
   const title = pos.join(' ').trim();
   if (!title) { console.error(c.red('uso: capa iniciar "titulo"')); process.exit(1); }
@@ -85,6 +91,7 @@ function runtimeStart({ flags, pos }) {
 
 function runtimeStatus() {
   printRuntimeItem(runtime.active(require('../lib/runtime/db').open(process.cwd())));
+  printBudget();
 }
 
 function runtimeBacklog() {
@@ -101,6 +108,7 @@ function runtimeNext() {
   console.log(`Estado a ejecutar: ${out.state}`);
   console.log(`Próximo estado: ${out.following || '—'}`);
   console.log('Regla: ejecuta solo este estado, registra evidencia y detente.');
+  printBudget();
 }
 
 function runtimeGo() {
@@ -115,6 +123,7 @@ function runtimeGo() {
   console.log(`Estado a ejecutar: ${out.state}`);
   console.log(`Próximo estado: ${out.following || '—'}`);
   console.log('Regla: haz solo este estado, registra evidencia si aplica, completa y detente.');
+  printBudget();
 }
 
 function runtimeComplete({ flags }) {
@@ -290,6 +299,7 @@ function help() {
 ${c.bold('Runtime DB-first:')}
   ${c.cyan('iniciar')} "titulo"              crea PBI activo en .capa/capa.db
   ${c.cyan('estado')}                         muestra PBI activo DB-first
+  ${c.cyan('budget')}                         muestra presupuesto por transición
   ${c.cyan('go')} / ${c.cyan('vamos')}        flujo natural: avanza una transición y se detiene
   ${c.cyan('siguiente')}                      inicia una sola transición one-step
   ${c.cyan('completar')} [--status ok]        registra cierre de transición
@@ -325,6 +335,7 @@ function main() {
   switch (cmd) {
     case 'iniciar': case 'start': return runtimeStart({ flags, pos });
     case 'estado': case 'active': return runtimeStatus();
+    case 'budget': return printBudget();
     case 'go': case 'vamos': case 'seguir': case 'next-step': return runtimeGo();
     case 'siguiente': case 'next': return runtimeNext();
     case 'completar': case 'complete': return runtimeComplete({ flags });
