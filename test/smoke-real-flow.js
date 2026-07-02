@@ -93,7 +93,7 @@ run(capa, ['review', 'add', '--status', 'ok', '--summary', 'real flow uses appro
 complete('Code review complete');
 
 out = next();
-assert.match(out, /Estado a ejecutar: DONE/);
+assert.match(out, /Estado a ejecutar: CLOSURE/);
 out = run(capa, ['cerrar', 'pbi', '--summary', 'Real CAPA flow closed with scope, guard, evidence, test and review']);
 assert.match(out, /CAPA PBI CLOSED/);
 
