@@ -15,6 +15,25 @@ Use CAPA when the user asks for `/capa`, `vamos con lo que sigue`, `next step`, 
 7. Never auto-fix a side issue. Register it as a finding.
 8. Before closing work, require evidence, test and review.
 9. If CAPA blocks, stop. Do not work around the guard.
+10. Before any edit/write/delete, run the mandatory edit guard for each target file.
+
+## Mandatory edit guard
+
+Before any tool or action that changes a file, run:
+
+```bash
+node bin/capa-agent-edit-guard.js --file <path>
+```
+
+Equivalent low-level command:
+
+```bash
+node bin/capa.js guard edit --file <path>
+```
+
+If either command returns `CAPA BLOCK`, do not edit. Stop and report the blocker.
+
+This requirement applies to Edit, Write, MultiEdit, delete, generated-file writes and automated fixes. It also applies when the change seems small.
 
 ## `/capa vamos con lo que sigue`
 
@@ -32,7 +51,7 @@ Allowed behavior:
 - DISCOVERY: inspect only; register evidence if useful.
 - PLAN: define a tiny implementation plan; do not edit.
 - SCOPE: register approved paths with `scope add`.
-- IMPLEMENT: edit only approved scoped paths.
+- IMPLEMENT: edit only approved scoped paths after the mandatory edit guard passes.
 - TEST: run or register tests.
 - CODE_REVIEW: review only the diff for the current PBI.
 - DONE: close the PBI only if gates pass.
@@ -73,6 +92,7 @@ node bin/capa.js iniciar "<title>"
 node bin/capa.js estado
 node bin/capa.js siguiente
 node bin/capa.js scope add <path> --reason "<reason>"
+node bin/capa-agent-edit-guard.js --file <path>
 node bin/capa.js evidence add "<claim>" --classification VERIFIED
 node bin/capa.js test add --type smoke --command "<command>" --status ok
 node bin/capa.js review add --status ok --summary "<summary>" --risk low
