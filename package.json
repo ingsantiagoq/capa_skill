@@ -3,14 +3,15 @@
   "version": "0.2.0",
   "description": "CAPA — Contexto · Alcance · Progreso · Aseguramiento. Runtime DB-first para agentes de código, con SQLite, one-step execution y evidencia verificable.",
   "bin": {
-    "capa": "bin/capa.js"
+    "capa": "bin/capa.js",
+    "capa-go": "bin/capa-go.js"
   },
   "type": "commonjs",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-api-write.js && node test/smoke-dashboard-actions.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js",
+    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-api-write.js && node test/smoke-dashboard-actions.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js",
     "test:db": "node test/smoke-db-first.js",
     "test:guard": "node test/smoke-guard.js",
     "test:hook": "node test/smoke-hook.js",
@@ -22,7 +23,8 @@
     "test:api-write": "node test/smoke-api-write.js",
     "test:dashboard-actions": "node test/smoke-dashboard-actions.js",
     "test:agents": "node test/smoke-agent-adapters.js",
-    "test:next": "node test/smoke-next-requires-complete.js"
+    "test:next": "node test/smoke-next-requires-complete.js",
+    "test:go": "node test/smoke-capa-go.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
