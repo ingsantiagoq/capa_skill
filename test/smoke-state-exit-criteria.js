@@ -38,6 +38,7 @@ run(['siguiente']);
 let blocked = attempt(['completar', '--status', 'ok', '--summary', 'Scope complete']);
 assert.equal(blocked.status, 0);
 assert.match(blocked.stdout, /Cannot complete SCOPE/);
+assert.match(blocked.stdout, /SCOPE requires at least one approved path/);
 
 run(['scope', 'add', 'src', '--reason', 'implementation folder']);
 complete('Scope complete');
@@ -50,6 +51,7 @@ run(['siguiente']);
 blocked = attempt(['completar', '--status', 'ok', '--summary', 'Implement complete']);
 assert.equal(blocked.status, 0);
 assert.match(blocked.stdout, /Cannot complete IMPLEMENT/);
+assert.match(blocked.stdout, /IMPLEMENT requires implementation evidence/);
 
 run(['evidence', 'add', 'Implementation changed scoped files', '--classification', 'VERIFIED', '--type', 'file']);
 complete('Implement complete');
@@ -60,6 +62,7 @@ run(['siguiente']);
 blocked = attempt(['completar', '--status', 'ok', '--summary', 'Test complete']);
 assert.equal(blocked.status, 0);
 assert.match(blocked.stdout, /Cannot complete TEST/);
+assert.match(blocked.stdout, /TEST requires at least one ok test/);
 
 run(['test', 'add', '--type', 'smoke', '--command', 'npm run test:state-exit', '--status', 'ok']);
 complete('Test complete');
@@ -68,6 +71,7 @@ run(['siguiente']);
 blocked = attempt(['completar', '--status', 'ok', '--summary', 'Code review complete']);
 assert.equal(blocked.status, 0);
 assert.match(blocked.stdout, /Cannot complete CODE_REVIEW/);
+assert.match(blocked.stdout, /CODE_REVIEW requires at least one ok review/);
 
 run(['review', 'add', '--status', 'ok', '--summary', 'state exit criteria reviewed', '--risk', 'low']);
 complete('Code review complete');
