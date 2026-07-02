@@ -37,6 +37,12 @@ assert.match(agents, /Mandatory edit guard/);
 assert.match(claude, /mandatory edit guard/);
 assert.match(codex, /Mandatory edit guard/);
 assert.match(claudeNotes, /Mandatory edit guard/);
+assert.match(agents, /Product Owner behavior/);
+assert.match(claude, /Product Owner behavior/);
+assert.match(agents, /map user intent to CAPA options/);
+assert.match(claude, /Translate natural language into the available CAPA options/);
+assert.match(agents, /Should this be implemented now, or added to backlog\?/);
+assert.match(claude, /implemented now or added to backlog/);
 
 assert.equal(platformConfig({ platform: 'claude' }).contractFile, 'CLAUDE.md');
 assert.equal(platformConfig({ platform: 'codex' }).contractFile, 'AGENTS.md');
