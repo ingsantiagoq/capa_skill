@@ -47,6 +47,13 @@ function close(server) {
     assert.match(body, /Para completar estado actual/);
     assert.match(body, /Para cerrar PBI/);
     assert.match(body, /Missing evidence/);
+    assert.match(body, /Backlog/);
+    assert.match(body, /Progreso/);
+    assert.match(body, /Evidencia/);
+    assert.match(body, /Tests/);
+    assert.match(body, /Reviews/);
+    assert.match(body, /Findings/);
+    assert.match(body, /Dashboard smoke PBI/);
   } finally {
     await close(server);
     cleanDb();
