@@ -83,3 +83,6 @@ jobs:
 
       - name: Run backlog management smoke test
         run: npm run test:backlog
+
+      - name: Run external repo init smoke test
+        run: npm run test:external-init
