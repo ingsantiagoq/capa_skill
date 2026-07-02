@@ -62,3 +62,6 @@ jobs:
 
       - name: Run CAPA strict close smoke test
         run: node test/smoke-strict-close.js
+
+      - name: Run CAPA go smoke test
+        run: npm run test:go
