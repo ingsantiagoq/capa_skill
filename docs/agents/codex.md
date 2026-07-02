@@ -1,6 +1,7 @@
 # Codex CAPA Adapter
 
 Use this file as the short operational contract for Codex-style agents.
+It is one surface-specific view of the same CAPA runtime contract used across LLM-operated workflows.
 
 ## Source of truth
 
@@ -12,6 +13,7 @@ node bin/capa.js siguiente
 ```
 
 Do not reconstruct workflow state from Markdown or previous conversation context.
+Do not assume Codex is the only supported surface.
 
 ## Required behavior
 

@@ -1,6 +1,7 @@
 # Claude Code CAPA Adapter
 
 When the user invokes `/capa`, use CAPA runtime first. Do not read every Markdown file to reconstruct state.
+This is the Claude-facing adapter of a broader CAPA contract that should remain consistent across LLM-operated surfaces.
 
 ## Default flow
 

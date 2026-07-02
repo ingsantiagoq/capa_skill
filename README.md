@@ -2,7 +2,7 @@
 
 **CAPA** — Contexto · Alcance · Progreso · Aseguramiento.
 
-CAPA es un runtime local para controlar trabajo asistido por agentes de IA como Claude Code, Codex u otras herramientas. Su objetivo no es producir más Markdown, sino mantener el trabajo pequeño, verificable, persistente y sin scope creep.
+CAPA es un runtime local para controlar trabajo asistido por agentes de IA y flujos operados por LLMs. Su objetivo no es producir más Markdown, sino mantener el trabajo pequeño, verificable, persistente y sin scope creep.
 
 Estado actual: **alpha interna usable**.
 
@@ -259,7 +259,7 @@ Cierre de PBI
 Cierre de sprint
 API local
 Dashboard local
-Adaptadores iniciales para Claude/Codex
+Adaptadores iniciales para superficies operadas por LLMs
 ```
 
 ---
@@ -269,12 +269,18 @@ Adaptadores iniciales para Claude/Codex
 CAPA todavía no está terminado. Falta:
 
 ```text
-1. Hook obligatorio más fuerte para Claude/Codex.
+1. Hook/adaptador obligatorio más fuerte y agnóstico del proveedor para cualquier LLM.
 2. Presupuesto por transición: archivos leídos, archivos editados, comandos, diff.
 3. Separar o esconder comandos legacy.
 4. Probarlo en varios repos reales.
 5. Mejorar onboarding de agentes.
 6. Export/handoff regenerable desde SQLite.
+```
+
+La ruta ejecutiva para cerrar esa brecha está en:
+
+```text
+docs/ROADMAP.md
 ```
 
 ---

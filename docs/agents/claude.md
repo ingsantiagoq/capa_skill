@@ -1,6 +1,7 @@
 # Claude CAPA Operating Notes
 
 This is the expanded note for Claude Code. The root `CLAUDE.md` is the short contract.
+It documents the Claude-facing variant of a CAPA contract intended to stay consistent across LLM surfaces.
 
 ## Intent
 
