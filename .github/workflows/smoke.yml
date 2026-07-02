@@ -80,3 +80,6 @@ jobs:
 
       - name: Run real CAPA flow smoke test
         run: npm run test:real-flow
+
+      - name: Run backlog management smoke test
+        run: npm run test:backlog
