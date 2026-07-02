@@ -4,14 +4,15 @@
   "description": "CAPA — Contexto · Alcance · Progreso · Aseguramiento. Runtime DB-first para agentes de código, con SQLite, one-step execution y evidencia verificable.",
   "bin": {
     "capa": "bin/capa.js",
-    "capa-go": "bin/capa-go.js"
+    "capa-go": "bin/capa-go.js",
+    "capa-agent-edit-guard": "bin/capa-agent-edit-guard.js"
   },
   "type": "commonjs",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-api-write.js && node test/smoke-dashboard-actions.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js",
+    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-api-write.js && node test/smoke-dashboard-actions.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-agent-edit-guard.js",
     "test:db": "node test/smoke-db-first.js",
     "test:guard": "node test/smoke-guard.js",
     "test:hook": "node test/smoke-hook.js",
@@ -26,7 +27,8 @@
     "test:next": "node test/smoke-next-requires-complete.js",
     "test:go": "node test/smoke-capa-go.js",
     "test:go-alias": "node test/smoke-capa-go-alias.js",
-    "test:state-exit": "node test/smoke-state-exit-criteria.js"
+    "test:state-exit": "node test/smoke-state-exit-criteria.js",
+    "test:agent-edit-guard": "node test/smoke-agent-edit-guard.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
