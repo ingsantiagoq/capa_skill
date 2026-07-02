@@ -42,15 +42,15 @@ assert.match(blockedEdit.stdout, /only allowed in IMPLEMENT/);
 nextOk('Discovery complete');
 nextOk('Viability complete');
 nextOk('Context complete');
+run(['scope', 'add', 'src', '--reason', 'implementation folder']);
 nextOk('Scope complete');
 nextOk('Gate complete');
 nextOk('Approval complete');
 
-const blockedNoScope = attempt(['guard', 'edit', '--file', 'src/app.js']);
-assert.equal(blockedNoScope.status, 2);
-assert.match(blockedNoScope.stdout, /Missing approved scope/);
+const blockedOutsideScope = attempt(['guard', 'edit', '--file', 'other/app.js']);
+assert.equal(blockedOutsideScope.status, 2);
+assert.match(blockedOutsideScope.stdout, /outside approved scope/);
 
-run(['scope', 'add', 'src', '--reason', 'implementation folder']);
 const allowedEdit = attempt(['guard', 'edit', '--file', 'src/app.js']);
 assert.equal(allowedEdit.status, 0);
 assert.match(allowedEdit.stdout, /CAPA ALLOW/);
