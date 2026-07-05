@@ -12,7 +12,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-api-write.js && node test/smoke-dashboard-actions.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-agent-edit-guard.js && node test/smoke-budget.js && node test/smoke-real-flow.js && node test/smoke-backlog-management.js && node test/smoke-external-repo-init.js",
+    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-api-write.js && node test/smoke-dashboard-actions.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-dp12-infra-proof.js && node test/smoke-agent-edit-guard.js && node test/smoke-budget.js && node test/smoke-real-flow.js && node test/smoke-backlog-management.js && node test/smoke-external-repo-init.js",
     "test:db": "node test/smoke-db-first.js",
     "test:guard": "node test/smoke-guard.js",
     "test:hook": "node test/smoke-hook.js",
