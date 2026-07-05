@@ -7,7 +7,7 @@ const { execFileSync } = require('child_process');
 const { open } = require('../lib/runtime/db');
 
 const root = path.resolve(__dirname, '..');
-const dbPath = path.join(root, '.capa', 'capa.db');
+const dbPath = require('./tmp-db').makeTempDb();
 const capa = path.join(root, 'bin', 'capa.js');
 
 function run(args) {
