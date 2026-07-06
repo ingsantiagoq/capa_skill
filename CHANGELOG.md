@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **doctor E13 (anti-teatro de dossier):** `capa doctor` ahora avisa cuando un objetivo con estado
+  no-NONE (PARTIAL/E2E-VERIFIED) tiene dimensiones que siguen siendo la PLANTILLA sin llenar (marcadores
+  `<!-- … -->`). E3 verificaba que el archivo existiera; E13 verifica que esté ESCRITO. Aviso (no bloqueo)
+  para no reventar el gate de PR de todo el backlog de una — escalable a BLOCKER tras el backfill.
+
 ## 0.3.0-alpha.0 — CAPA alpha estable
 
 Esta versión cierra CAPA como alpha interna estable: instalable, documentada, DB-first y lista para probarse en proyectos grandes con control de alcance, evidencia y backlog.
