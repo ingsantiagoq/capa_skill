@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### Fixed
+- **DP-12 dejó de auto-otorgarse (agujero de gobernanza).** `hasScopeProof()` concedía prueba de
+  Alcance a cualquier objetivo con `infra:true` + decisión `ACEPTADA` + evidencia `gate|integration`,
+  **sin mirar si el ADR padre había firmado DP-12** en su `governance.json`. Como `infra:true` lo
+  escribe el propio manifest, el objetivo era juez y parte: bastaba escribir dos campos para cobrar
+  E2E. Ahora `hasScopeProof(m, gov)` exige que la visión haya firmado la palanca.
+  - El marcador canónico es `grants: "infra-scope-proof"` en una decisión firmada. Los ids `DP-N`
+    están numerados **por ADR**, no globalmente: ADR-0016 también tiene un `DP-12` firmado con
+    `gate:true`, pero decide el molde de `pago-participante-posteo`. Casar por id desnudo le habría
+    regalado la palanca. Como respaldo legacy se acepta la DP-12 de ADR-0001 (id + `gate:true` + el
+    texto de la palanca), firmada antes de que existiera `grants`.
+  - `lintCapa(dir, graph, gov)` y `hasScopeProof(m, gov)` reciben la gobernanza del ADR padre;
+    `runDoctor` y `dashboard` la cargan y cachean por ADR. Sin gobernanza, fail-closed.
+  - E9 y E12 explican la causa concreta ("el ADR padre no firmó DP-12"). E12 bloquea si el objetivo
+    se declara `E2E-VERIFIED`; avisa si es `PARTIAL`.
+  - Efecto en btw-ubp-backend: ADR-0001 sin cambios (su DP-12 está firmada); ADR-0002/0003/0004/0005
+    pierden el crédito de Alcance no ganado (+31/+13/+24/+4 bloqueos E12). ADR-0016 no se ve afectado.
+
 ### Added
 - **doctor E13 (anti-teatro de dossier):** `capa doctor` ahora avisa cuando un objetivo con estado
   no-NONE (PARTIAL/E2E-VERIFIED) tiene dimensiones que siguen siendo la PLANTILLA sin llenar (marcadores
