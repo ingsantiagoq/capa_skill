@@ -72,12 +72,43 @@ let f = lintCapa(okDir, fakeGraph);
 let e9 = f.filter((x) => x.code === 'E9' && x.sev === 'BLOCKER');
 assert.equal(e9.length, 0, 'infra+gate+comando NO debe bloquear E9: ' + JSON.stringify(e9));
 
-// (b) mismo caso pero SIN infra:true  =>  E9 bloquea (prueba de infra no cuenta) + E12 avisa
+// (b) mismo caso pero SIN infra:true  =>  E9 bloquea (prueba de infra no cuenta) + E12 BLOQUEA
+//     (el fixture se declara E2E-VERIFIED: reclamar verificación apoyado en una prueba que DP-12
+//      no cuenta es exactamente el teatro que E12 debe atrapar).
 const noInfraDir = path.join(tmp, 'no-infra');
 makeCapa(noInfraDir, { ...base, evidence: [{ kind: 'gate', claim: 'gate', command: 'bash tools/check.sh', result: 'ok' }] });
 f = lintCapa(noInfraDir, fakeGraph);
 assert.ok(f.some((x) => x.code === 'E9' && x.sev === 'BLOCKER'), 'sin infra:true, gate no cuenta => E9 debe bloquear');
-assert.ok(f.some((x) => x.code === 'E12'), 'gate sin infra:true debe avisar E12');
+assert.ok(f.some((x) => x.code === 'E12' && x.sev === 'BLOCKER'), 'gate sin infra:true en objetivo E2E-VERIFIED debe BLOQUEAR E12');
+
+// (b2) infra:true pero decisión PROPUESTA + E2E-VERIFIED  =>  E12 BLOQUEA (exige firma real).
+const unsignedDir = path.join(tmp, 'infra-unsigned');
+makeCapa(unsignedDir, { ...base, infra: true, status: { ...base.status, decision: 'PROPUESTA' }, evidence: [{ kind: 'gate', claim: 'gate', command: 'bash tools/check.sh', result: 'ok' }] });
+f = lintCapa(unsignedDir, fakeGraph);
+assert.ok(f.some((x) => x.code === 'E12' && x.sev === 'BLOCKER'), 'infra sin ACEPTADA en objetivo E2E-VERIFIED debe BLOQUEAR E12');
+
+// (b3) mismo caso pero implementation PARTIAL  =>  E12 sigue siendo AVISO (no revienta el backlog).
+const partialDir = path.join(tmp, 'infra-partial');
+makeCapa(partialDir, { ...base, lifecycle: 'wip', infra: true, status: { ...base.status, decision: 'PROPUESTA', implementation: 'PARTIAL' }, evidence: [{ kind: 'gate', claim: 'gate', command: 'bash tools/check.sh', result: 'ok' }] });
+f = lintCapa(partialDir, fakeGraph);
+assert.ok(f.some((x) => x.code === 'E12' && x.sev !== 'BLOCKER'), 'E12 en objetivo PARTIAL debe seguir siendo aviso');
+assert.ok(!f.some((x) => x.code === 'E12' && x.sev === 'BLOCKER'), 'E12 no debe bloquear un objetivo PARTIAL');
+
+// (b4) E13 — dossier en plantilla. E2E-VERIFIED => BLOQUEA; PARTIAL => avisa.
+const SKELETON = '# CONTEXTO\n<!-- ¿Qué duele hoy? -->\n';
+
+const skelVerifiedDir = path.join(tmp, 'skel-verified');
+makeCapa(skelVerifiedDir, { ...base, infra: true, evidence: [{ kind: 'gate', claim: 'g', command: 'bash tools/check.sh', result: 'ok' }] });
+fs.writeFileSync(path.join(skelVerifiedDir, 'CONTEXTO.md'), SKELETON);
+f = lintCapa(skelVerifiedDir, fakeGraph);
+assert.ok(f.some((x) => x.code === 'E13' && x.sev === 'BLOCKER'), 'dossier plantilla en objetivo E2E-VERIFIED debe BLOQUEAR E13');
+
+const skelPartialDir = path.join(tmp, 'skel-partial');
+makeCapa(skelPartialDir, { ...base, lifecycle: 'wip', infra: true, status: { ...base.status, implementation: 'PARTIAL' }, evidence: [{ kind: 'gate', claim: 'g', command: 'bash tools/check.sh', result: 'ok' }] });
+fs.writeFileSync(path.join(skelPartialDir, 'CONTEXTO.md'), SKELETON);
+f = lintCapa(skelPartialDir, fakeGraph);
+assert.ok(f.some((x) => x.code === 'E13' && x.sev !== 'BLOCKER'), 'E13 en objetivo PARTIAL debe seguir siendo aviso');
+assert.ok(!f.some((x) => x.code === 'E13' && x.sev === 'BLOCKER'), 'E13 no debe bloquear un objetivo PARTIAL');
 
 // (c) infra:true + integration + comando  =>  done sin bloqueos
 const intDir = path.join(tmp, 'infra-int');
