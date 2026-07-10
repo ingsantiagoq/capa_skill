@@ -25,8 +25,13 @@ The agent should help the user decide between these actions:
 - register lateral finding: finding add
 - close PBI: cerrar pbi
 - close sprint/context: cerrar sprint
-- inspect dashboard/API: api
+- render the dashboard: dashboard
 ```
+
+There is exactly ONE dashboard: `capa dashboard`, which writes the static
+`capa-out/dashboard.html` from the `capa/` manifests. It is the only correct
+answer when a user asks for "the CAPA dashboard". Never hand-roll an HTML
+report, never serve one, never resurrect `capa api`.
 
 If the user gives a broad request, clarify it as a PO before coding. Good default questions are:
 

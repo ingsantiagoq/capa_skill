@@ -180,17 +180,7 @@ capa cerrar pbi --summary "PBI cerrado con evidencia"
 capa cerrar sprint --summary "Sprint cerrado"
 ```
 
-Dashboard local:
-
-```bash
-capa api --port 4739
-```
-
-Abrir:
-
-```text
-http://127.0.0.1:4739/
-```
+Dashboard — hay **uno solo**, ver [§ Dashboard](#dashboard).
 
 ---
 
@@ -367,20 +357,45 @@ El presupuesto aparece también en `capa estado`, `capa go` y `capa siguiente`.
 
 ## Dashboard
 
-El dashboard local muestra:
+**Hay un único dashboard.** Se genera con:
 
-- PBI activo;
-- blockers para completar el estado actual;
-- blockers para cerrar PBI;
-- backlog;
-- progreso;
-- evidencia;
-- tests;
-- reviews;
-- findings;
-- formularios para registrar acciones.
+```bash
+capa dashboard
+```
 
-No requiere React, Angular, Ionic ni Vite. Es local, simple y DB-first.
+Escribe dos artefactos regenerables en `capa-out/`:
+
+| Artefacto | Qué es |
+| --- | --- |
+| `capa-out/dashboard.html` | el tablero — abrilo en el navegador |
+| `capa-out/capa.db` | SQLite derivada (cache; se borra y reconstruye en cada corrida) |
+
+Se construye leyendo **los `manifest.json` de `capa/`**, que son la fuente de
+verdad. No hay servidor, ni build, ni framework: es un HTML estático.
+
+Muestra, sobre todos los ADR del proyecto:
+
+- índice consolidado por ADR, agrupado en *tiers*, con madurez del barrido;
+- por objetivo: barrido, lifecycle, decisión/implementación, progreso de slices;
+- si tiene prueba de Alcance (`api`/`e2e-ui`) y qué lo bloquea;
+- gobernanza por ADR: decisiones `DP-*` firmadas, pendientes y rechazadas.
+
+Los *tiers* del índice se declaran en `capa.config.json` (rangos inclusivos de
+id). Sin `tiers`, los ADR caen en un solo grupo:
+
+```json
+{
+  "tiers": [
+    { "name": "Fundacional", "from": "ADR-0001", "to": "ADR-0005" },
+    { "name": "Módulos de negocio", "from": "ADR-0020", "to": "ADR-0035" }
+  ]
+}
+```
+
+> No existe `capa api`, ni un dashboard de runtime, ni `gen-dashboard.py`.
+> Si encontrás otro HTML de CAPA en un repo, está muerto: borralo.
+> El estado del runtime DB-first se inspecciona por CLI (`capa estado`,
+> `capa backlog list`, `capa evidence list`), no por web.
 
 ---
 

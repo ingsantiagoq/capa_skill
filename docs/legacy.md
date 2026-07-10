@@ -28,8 +28,16 @@ capa test add --type smoke --command "npm test" --status ok
 capa review add --status ok --summary "..." --risk low
 capa cerrar pbi --summary "..."
 capa cerrar sprint --summary "..."
-capa api --port 4739
 ```
+
+The runtime has **no web surface**. Inspect it with the CLI. `capa api` was
+removed: it served a second, competing dashboard.
+
+## The dashboard is not legacy
+
+`capa dashboard` belongs to the dossier toolchain but is **the single supported
+dashboard of CAPA**, for both surfaces. It renders `capa-out/dashboard.html`
+from the `capa/` manifests. See the README.
 
 ## Legacy dossier commands
 
@@ -44,7 +52,6 @@ capa progress <ADR> --objetivo <S>
 capa govern <ADR>
 capa panel <ADR-XXXX> --objetivo <S>
 capa doctor [--adr ID]
-capa dashboard
 capa status
 capa install
 capa uninstall
