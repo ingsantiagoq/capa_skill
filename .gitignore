@@ -2,3 +2,5 @@ node_modules/
 *.log
 .DS_Store
 .codex/
+.capa/capa.db
+capa-out/
