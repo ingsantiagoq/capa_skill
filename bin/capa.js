@@ -15,6 +15,8 @@ const { runPanel } = require('../lib/panel');
 const runtime = require('../lib/runtime/items');
 const backlog = require('../lib/runtime/backlog');
 const guard = require('../lib/runtime/guard');
+const guardManifest = require('../lib/runtime/guard-manifest');
+const focus = require('../lib/runtime/focus');
 const scope = require('../lib/runtime/scope');
 const findings = require('../lib/runtime/findings');
 const evidence = require('../lib/runtime/evidence');
@@ -211,10 +213,40 @@ function runtimeBlock({ pos }) {
 
 function runtimeGuard({ flags, pos }) {
   const action = pos[0];
-  if (!action) { console.error(c.red('uso: capa guard <edit|write|delete|close|done> [--file ruta] [--auto-fix]')); process.exit(1); }
+  if (!action) { console.error(c.red('uso: capa guard <edit|write|delete|close|done> [--file ruta] [--manifest] [--auto-fix]')); process.exit(1); }
+  if (flags.manifest) {
+    const { root, config } = loadConfig();
+    const result = guardManifest.evaluate({ root, config, file: flags.file });
+    guardManifest.print(result);
+    if (!result.allowed) process.exit(result.code || 2);
+    return;
+  }
   const result = guard.evaluate({ root: process.cwd(), action, file: flags.file, autoFix: Boolean(flags['auto-fix'] || flags.autofix) });
   guard.print(result);
   if (!result.allowed) process.exit(result.code || 2);
+}
+
+function runtimeFocus({ flags, pos }) {
+  const { root, config } = loadConfig();
+  const sub = pos[0];
+  if (sub === 'clear' || flags.clear) {
+    focus.clearFocus(root);
+    console.log('Foco CAPA limpiado.');
+    return;
+  }
+  // `capa focus` sin args, o `capa focus show` → mostrar
+  if (!sub || sub === 'show') {
+    const f = focus.getFocus(root);
+    if (!f) { console.log('(sin objetivo en foco — usá `capa focus <ADR> <objetivo>`)'); return; }
+    console.log(`Objetivo en foco: ${f.adr}/${f.objetivo}`);
+    return;
+  }
+  // `capa focus <ADR> <objetivo>` o `capa focus <ADR> --objetivo <slug>`
+  const adr = sub;
+  const objetivo = pos[1] || flags.objetivo;
+  const out = focus.setFocus({ root, config, adr, objetivo });
+  if (!out.ok) { console.error(c.red(out.message)); process.exit(1); }
+  console.log(c.green(`Foco CAPA: ${out.adr}/${out.objetivo}`));
 }
 
 function runtimeScope({ flags, pos }) {
@@ -366,7 +398,8 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('completar')} [--status ok]        registra cierre de transición
   ${c.cyan('bloquear')} "motivo"              bloquea PBI activo
   ${c.cyan('backlog')} <list|add|show|activate|cancel|task> gestiona backlog, PBIs y tareas
-  ${c.cyan('guard')} <acción> [--file ruta]   valida si una acción está permitida
+  ${c.cyan('guard')} <acción> [--file ruta] [--manifest]  valida si una acción está permitida (--manifest = modo dossier)
+  ${c.cyan('focus')} <ADR> <objetivo>         declara el objetivo manifest en foco (gate de edición modo-manifest)
   ${c.cyan('scope')} <add|list>               administra alcance permitido
   ${c.cyan('finding')} <add|list>             registra hallazgos laterales
   ${c.cyan('evidence')} <add|list>            registra evidencia verificable
@@ -409,6 +442,7 @@ function main() {
     case 'bloquear': case 'block': return runtimeBlock({ pos });
     case 'backlog': return runtimeBacklog({ flags, pos });
     case 'guard': return runtimeGuard({ flags, pos });
+    case 'focus': return runtimeFocus({ flags, pos });
     case 'scope': return runtimeScope({ flags, pos });
     case 'finding': return runtimeFinding({ flags, pos });
     case 'evidence': return runtimeEvidence({ flags, pos });
