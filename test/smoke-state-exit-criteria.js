@@ -73,6 +73,40 @@ assert.equal(blocked.status, 0);
 assert.match(blocked.stdout, /Cannot complete CODE_REVIEW/);
 assert.match(blocked.stdout, /CODE_REVIEW requires at least one ok review/);
 
+blocked = attempt(['completar', '--status', 'fail', '--summary', 'Code review needs rework']);
+assert.equal(blocked.status, 0);
+assert.match(blocked.stdout, /CODE_REVIEW rework requires at least one fail review/);
+
+run(['review', 'add', '--status', 'ok', '--summary', 'stale review must not survive rework', '--risk', 'low']);
+run(['review', 'add', '--status', 'fail', '--summary', 'rework required', '--risk', 'medium']);
+const rework = run(['completar', '--status', 'fail', '--summary', 'Code review needs rework']);
+assert.match(rework, /Estado ejecutado: CODE_REVIEW/);
+assert.match(rework, /Próximo estado: IMPLEMENT/);
+
+const reworkStatus = run(['estado']);
+assert.match(reworkStatus, /state: IMPLEMENT -> BUILD/);
+const allowedEdit = attempt(['guard', 'edit', '--file', 'src/rework.js']);
+assert.equal(allowedEdit.status, 0);
+assert.match(allowedEdit.stdout, /CAPA ALLOW/);
+assert.match(run(['scope', 'list']), /src/);
+assert.match(run(['evidence', 'list']), /Implementation changed scoped files/);
+
+run(['evidence', 'add', 'Review findings fixed', '--classification', 'VERIFIED', '--type', 'file']);
+complete('Rework implementation complete');
+run(['siguiente']);
+complete('Rework build complete');
+run(['siguiente']);
+complete('Rework test complete');
+run(['siguiente']);
+
+blocked = attempt(['completar', '--status', 'ok', '--summary', 'Stale review must not close rework']);
+assert.equal(blocked.status, 0);
+assert.match(blocked.stdout, /CODE_REVIEW requires at least one ok review/);
+
+blocked = attempt(['completar', '--status', 'fail', '--summary', 'Consumed fail must not reopen rework']);
+assert.equal(blocked.status, 0);
+assert.match(blocked.stdout, /CODE_REVIEW rework requires at least one fail review/);
+
 run(['review', 'add', '--status', 'ok', '--summary', 'state exit criteria reviewed', '--risk', 'low']);
 complete('Code review complete');
 
