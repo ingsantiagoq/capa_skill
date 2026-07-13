@@ -83,4 +83,12 @@ r = cli(['guard', 'edit', '--file', 'src/a.js', '--manifest']);
 assert.equal(r.status, 2, 'tras clear debe bloquear');
 assert.match(r.stdout, /No hay objetivo CAPA en foco/);
 
+// 9. A CAPA root with zero objectives is ungoverned => ALLOW (no brick).
+const emptyRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'capa-empty-'));
+fs.writeFileSync(path.join(emptyRoot, 'capa.config.json'), JSON.stringify({ project: 'empty', dossierDir: 'capa' }));
+fs.mkdirSync(path.join(emptyRoot, 'capa'), { recursive: true });
+r = spawnSync(process.execPath, [bin, 'guard', 'edit', '--file', 'src/anything.js', '--manifest'], { cwd: emptyRoot, encoding: 'utf8' });
+assert.equal(r.status, 0, 'raíz sin objetivos no debe bloquear');
+assert.match(r.stdout, /CAPA ALLOW/);
+
 console.log('Manifest guard smoke test OK');
