@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { c, loadConfig, readJSON } = require('../lib/util');
-const { init, vision, newCapa } = require('../lib/scaffold');
+const { init, vision, newCapa, setRoute } = require('../lib/scaffold');
 const { runDoctor, findCapas } = require('../lib/doctor');
 const { runThread } = require('../lib/thread');
 const { runProgress } = require('../lib/progress');
@@ -419,6 +419,7 @@ ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
   ${c.cyan('vision')} <ADR-XXXX>              carpeta-visión de un ADR  [--title "..."]
   ${c.cyan('new')} <ADR-XXXX> --objetivo S    1 CAPA bajo la visión  [--title "..."] [--route a,b]
+  ${c.cyan('route')} <ADR-XXXX> --objetivo S  lee o redefine la ruta de un CAPA existente  [--route a,b]
   ${c.cyan('thread')} <ADR-XXXX> --objetivo S activa graphify sobre la ruta e hila dependencias
   ${c.cyan('progress')} <ADR> --objetivo S    marca qué llevo/qué falta  [--done|--undone <sliceId>]
   ${c.cyan('govern')} <ADR>                   decisiones de gobernanza  [--sign|--reject DP-x]
@@ -452,6 +453,7 @@ function main() {
     case 'init': return init({ root: process.cwd(), dossierDir: flags.dir || 'capa' });
     case 'vision': { const { root, config } = loadConfig(); return vision({ root, config, adr: pos[0], title: flags.title, slug: flags.slug }); }
     case 'new': { const { root, config } = loadConfig(); return newCapa({ root, config, adr: pos[0], objetivo: flags.objetivo, title: flags.title, route: flags.route, frontend: !!flags.frontend }); }
+    case 'route': { const { root, config } = loadConfig(); return setRoute({ root, config, adr: pos[0], objetivo: flags.objetivo, route: flags.route }); }
     case 'thread': { const { root, config } = loadConfig(); return runThread({ root, config, adr: pos[0], objetivo: flags.objetivo }); }
     case 'progress': { const { root, config } = loadConfig(); return runProgress({ root, config, adr: pos[0], objetivo: flags.objetivo, done: flags.done, undone: flags.undone }); }
     case 'govern': { const { root, config } = loadConfig(); return runGovern({ root, config, adr: pos[0], sign: flags.sign, reject: flags.reject }); }
