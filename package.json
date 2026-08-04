@@ -1,7 +1,7 @@
 {
   "name": "@btw/capa-cli",
   "version": "0.3.0-alpha.0",
-  "description": "CAPA \u2014 Contexto \u00b7 Alcance \u00b7 Progreso \u00b7 Aseguramiento. Runtime DB-first para agentes de c\u00f3digo, con SQLite, one-step execution, backlog y evidencia verificable.",
+  "description": "CAPA — Contexto · Alcance · Progreso · Aseguramiento. Runtime DB-first para agentes de código, con SQLite, one-step execution, backlog y evidencia verificable.",
   "bin": {
     "capa": "bin/capa.js",
     "capa-go": "bin/capa-go.js",
@@ -12,7 +12,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-dashboard-html.js && node test/smoke-presence-only.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-dp12-infra-proof.js && node test/smoke-agent-edit-guard.js && node test/smoke-guard-manifest.js && node test/smoke-budget.js && node test/smoke-real-flow.js && node test/smoke-backlog-management.js && node test/smoke-external-repo-init.js && node test/smoke-doctor-slice-visibility.js",
+    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-dashboard-html.js && node test/smoke-presence-only.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-dp12-infra-proof.js && node test/smoke-agent-edit-guard.js && node test/smoke-guard-manifest.js && node test/smoke-budget.js && node test/smoke-real-flow.js && node test/smoke-backlog-management.js && node test/smoke-external-repo-init.js && node test/smoke-doctor-slice-visibility.js && node test/smoke-route-form-parity.js",
     "test:db": "node test/smoke-db-first.js",
     "test:guard": "node test/smoke-guard.js",
     "test:hook": "node test/smoke-hook.js",
@@ -34,7 +34,8 @@
     "test:real-flow": "node test/smoke-real-flow.js",
     "test:backlog": "node test/smoke-backlog-management.js",
     "test:external-init": "node test/smoke-external-repo-init.js",
-    "test:slice-visibility": "node test/smoke-doctor-slice-visibility.js"
+    "test:slice-visibility": "node test/smoke-doctor-slice-visibility.js",
+    "test:route-parity": "node test/smoke-route-form-parity.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
