@@ -1,10 +1,26 @@
 # CAPA
 
-**CAPA** — Contexto · Alcance · Progreso · Aseguramiento.
+**CAPA** — Contexto · Alcance · Progreso · Aseguramiento · **Poder**.
 
 CAPA es un runtime local para controlar trabajo asistido por agentes de IA y flujos operados por LLMs. Su objetivo no es producir más Markdown, sino mantener el trabajo pequeño, verificable, persistente y sin scope creep.
 
 Estado actual: **alpha estable interna — 0.3.0-alpha.0**.
+
+---
+
+## Dos runtimes — no confundirlos (LEER PRIMERO)
+
+CAPA tiene **dos modelos de ejecución**. No se mezclan. Confundirlos es la causa #1 de "el agente dijo que usó CAPA y no hizo nada".
+
+1. **Modo manifest / dossier** — el que **usa UBP** (ver `skill/SKILL.md`).
+   - Estado en `capa/ADR-*/<objetivo>/manifest.json`: `status` de dos ejes (`decision` × `implementation`) + 5 dimensiones (Contexto·Alcance·Progreso·Aseguramiento·**Poder**) + `evidence[]` + `decisions[]`.
+   - Gate: `capa doctor`. Tablero: `capa dashboard` → `capa-out/dashboard.html`.
+   - Los objetivos **no** se avanzan con `capa go`.
+
+2. **Modo máquina de estados / PBI** — el runtime alfa DB-first (lo que describe el resto de este README).
+   - Estado en `.capa/capa.db` (SQLite), transición a la vez con `capa go`/`siguiente`, guardado por `capa-agent-edit-guard`.
+
+Todo lo que sigue describe el **modo PBI**. Para UBP, dirigí objetivos por el **modo manifest**.
 
 ---
 
@@ -60,11 +76,15 @@ docs/legacy.md
 
 ## Instalación local
 
+> **¿PC nuevo? Instalá TODO el stack** (CAPA + graphify + las 11 skills globales +
+> hooks) siguiendo **[INSTALL.md](INSTALL.md)**. Lo de abajo es solo CAPA.
+
 Requisitos:
 
 ```text
 Node.js >= 18
 npm
+graphify   (dependencia dura — ver INSTALL.md §2)
 ```
 
 Instalación desde el repositorio:
@@ -82,6 +102,9 @@ Validar instalación:
 capa version
 npm test
 ```
+
+Las **skills globales** de Claude Code viajan en este repo bajo `skills-global/`;
+se copian a `~/.claude/skills/` (ver [INSTALL.md](INSTALL.md) §4).
 
 ---
 

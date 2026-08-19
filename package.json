@@ -12,7 +12,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-dashboard-html.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-dp12-infra-proof.js && node test/smoke-agent-edit-guard.js && node test/smoke-budget.js && node test/smoke-real-flow.js && node test/smoke-backlog-management.js && node test/smoke-external-repo-init.js",
+    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-dashboard-html.js && node test/smoke-presence-only.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-dp12-infra-proof.js && node test/smoke-agent-edit-guard.js && node test/smoke-guard-manifest.js && node test/smoke-budget.js && node test/smoke-real-flow.js && node test/smoke-backlog-management.js && node test/smoke-external-repo-init.js && node test/smoke-doctor-slice-visibility.js && node test/smoke-route-form-parity.js",
     "test:db": "node test/smoke-db-first.js",
     "test:guard": "node test/smoke-guard.js",
     "test:hook": "node test/smoke-hook.js",
@@ -22,16 +22,20 @@
     "test:close": "node test/smoke-close-pbi.js",
     "test:sprint": "node test/smoke-close-sprint.js",
     "test:dashboard": "node test/smoke-dashboard-html.js",
+    "test:presence": "node test/smoke-presence-only.js",
     "test:agents": "node test/smoke-agent-adapters.js",
     "test:next": "node test/smoke-next-requires-complete.js",
     "test:go": "node test/smoke-capa-go.js",
     "test:go-alias": "node test/smoke-capa-go-alias.js",
     "test:state-exit": "node test/smoke-state-exit-criteria.js",
     "test:agent-edit-guard": "node test/smoke-agent-edit-guard.js",
+    "test:guard-manifest": "node test/smoke-guard-manifest.js",
     "test:budget": "node test/smoke-budget.js",
     "test:real-flow": "node test/smoke-real-flow.js",
     "test:backlog": "node test/smoke-backlog-management.js",
-    "test:external-init": "node test/smoke-external-repo-init.js"
+    "test:external-init": "node test/smoke-external-repo-init.js",
+    "test:slice-visibility": "node test/smoke-doctor-slice-visibility.js",
+    "test:route-parity": "node test/smoke-route-form-parity.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
@@ -40,10 +44,29 @@
     "graphify": ">=0.8"
   },
   "peerDependenciesMeta": {
-    "graphify": { "optional": false }
+    "graphify": {
+      "optional": false
+    }
   },
-  "files": ["bin", "lib", "templates", "skill", "platform", ".capa"],
-  "keywords": ["capa", "adr", "sqlite", "graphify", "claude-code", "codex", "anti-theater", "backlog", "agent-workflow"],
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "skill",
+    "platform",
+    ".capa"
+  ],
+  "keywords": [
+    "capa",
+    "adr",
+    "sqlite",
+    "graphify",
+    "claude-code",
+    "codex",
+    "anti-theater",
+    "backlog",
+    "agent-workflow"
+  ],
   "license": "UNLICENSED",
   "private": true
 }

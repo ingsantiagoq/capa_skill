@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { c, loadConfig, readJSON } = require('../lib/util');
-const { init, vision, newCapa } = require('../lib/scaffold');
+const { init, vision, newCapa, setRoute } = require('../lib/scaffold');
 const { runDoctor, findCapas } = require('../lib/doctor');
 const { runThread } = require('../lib/thread');
 const { runProgress } = require('../lib/progress');
@@ -15,6 +15,8 @@ const { runPanel } = require('../lib/panel');
 const runtime = require('../lib/runtime/items');
 const backlog = require('../lib/runtime/backlog');
 const guard = require('../lib/runtime/guard');
+const guardManifest = require('../lib/runtime/guard-manifest');
+const focus = require('../lib/runtime/focus');
 const scope = require('../lib/runtime/scope');
 const findings = require('../lib/runtime/findings');
 const evidence = require('../lib/runtime/evidence');
@@ -82,7 +84,7 @@ function printBudget() {
 
 function runtimeStart({ flags, pos }) {
   const title = pos.join(' ').trim();
-  if (!title) { console.error(c.red('uso: capa iniciar "titulo"')); process.exit(1); }
+  if (!title) { console.error(c.red('uso: capa iniciar "titulo"')); return void (process.exitCode = 1); }
   const id = runtime.create({ root: process.cwd(), title, type: flags.type || 'task', priority: flags.priority || 3 });
   console.log(c.green(`PBI creado #${id}`));
   console.log('Estado actual: NEW');
@@ -104,7 +106,7 @@ function runtimeBacklog({ flags, pos }) {
   if (sub === 'list') return printBacklogRows(backlog.list({ root: process.cwd(), status: flags.status || null }));
   if (sub === 'add') {
     const title = pos.slice(1).join(' ').trim();
-    if (!title) { console.error(c.red('uso: capa backlog add "titulo" [--description "..."] [--type feature] [--priority 2]')); process.exit(1); }
+    if (!title) { console.error(c.red('uso: capa backlog add "titulo" [--description "..."] [--type feature] [--priority 2]')); return void (process.exitCode = 1); }
     const item = backlog.add({ root: process.cwd(), title, description: flags.description || null, type: flags.type || 'task', priority: flags.priority || 3 });
     console.log(c.green(`PBI agregado al backlog #${item.id}`));
     console.log(`${item.title}`);
@@ -133,7 +135,7 @@ function runtimeBacklog({ flags, pos }) {
   }
   if (sub === 'task') return runtimeBacklogTask({ flags, pos: pos.slice(1) });
   console.error(c.red('uso: capa backlog <list|add|show|activate|cancel|task>'));
-  process.exit(1);
+  return void (process.exitCode = 1);
 }
 
 function runtimeBacklogTask({ flags, pos }) {
@@ -141,7 +143,7 @@ function runtimeBacklogTask({ flags, pos }) {
   if (sub === 'add') {
     const itemId = flags.pbi || flags.item || pos[1];
     const title = flags.title || pos.slice(itemId === pos[1] ? 2 : 1).join(' ').trim();
-    if (!itemId || !title) { console.error(c.red('uso: capa backlog task add --pbi <id> "titulo" [--acceptance "..."] [--model sonnet]')); process.exit(1); }
+    if (!itemId || !title) { console.error(c.red('uso: capa backlog task add --pbi <id> "titulo" [--acceptance "..."] [--model sonnet]')); return void (process.exitCode = 1); }
     const out = backlog.addTask({ root: process.cwd(), itemId, title, description: flags.description || null, acceptance: flags.acceptance || null, ownerModel: flags.model || flags['owner-model'] || 'sonnet' });
     if (!out.ok) return console.log(c.yellow(out.message));
     console.log(c.green(`Tarea #${out.task.id} agregada al PBI #${out.item.id}`));
@@ -164,7 +166,7 @@ function runtimeBacklogTask({ flags, pos }) {
     return;
   }
   console.error(c.red('uso: capa backlog task <add|list|done>'));
-  process.exit(1);
+  return void (process.exitCode = 1);
 }
 
 function runtimeNext() {
@@ -211,17 +213,47 @@ function runtimeBlock({ pos }) {
 
 function runtimeGuard({ flags, pos }) {
   const action = pos[0];
-  if (!action) { console.error(c.red('uso: capa guard <edit|write|delete|close|done> [--file ruta] [--auto-fix]')); process.exit(1); }
+  if (!action) { console.error(c.red('uso: capa guard <edit|write|delete|close|done> [--file ruta] [--manifest] [--auto-fix]')); return void (process.exitCode = 1); }
+  if (flags.manifest) {
+    const { root, config } = loadConfig();
+    const result = guardManifest.evaluate({ root, config, file: flags.file });
+    guardManifest.print(result);
+    if (!result.allowed) return void (process.exitCode = result.code || 2);
+    return;
+  }
   const result = guard.evaluate({ root: process.cwd(), action, file: flags.file, autoFix: Boolean(flags['auto-fix'] || flags.autofix) });
   guard.print(result);
-  if (!result.allowed) process.exit(result.code || 2);
+  if (!result.allowed) return void (process.exitCode = result.code || 2);
+}
+
+function runtimeFocus({ flags, pos }) {
+  const { root, config } = loadConfig();
+  const sub = pos[0];
+  if (sub === 'clear' || flags.clear) {
+    focus.clearFocus(root);
+    console.log('Foco CAPA limpiado.');
+    return;
+  }
+  // `capa focus` sin args, o `capa focus show` → mostrar
+  if (!sub || sub === 'show') {
+    const f = focus.getFocus(root);
+    if (!f) { console.log('(sin objetivo en foco — usá `capa focus <ADR> <objetivo>`)'); return; }
+    console.log(`Objetivo en foco: ${f.adr}/${f.objetivo}`);
+    return;
+  }
+  // `capa focus <ADR> <objetivo>` o `capa focus <ADR> --objetivo <slug>`
+  const adr = sub;
+  const objetivo = pos[1] || flags.objetivo;
+  const out = focus.setFocus({ root, config, adr, objetivo });
+  if (!out.ok) { console.error(c.red(out.message)); return void (process.exitCode = 1); }
+  console.log(c.green(`Foco CAPA: ${out.adr}/${out.objetivo}`));
 }
 
 function runtimeScope({ flags, pos }) {
   const sub = pos[0];
   if (sub === 'add') {
     const allowedPath = pos[1];
-    if (!allowedPath) { console.error(c.red('uso: capa scope add <ruta> [--reason "motivo"]')); process.exit(1); }
+    if (!allowedPath) { console.error(c.red('uso: capa scope add <ruta> [--reason "motivo"]')); return void (process.exitCode = 1); }
     const out = scope.add({ root: process.cwd(), allowedPath, reason: flags.reason || null });
     if (!out.ok) return console.log(c.yellow(out.message));
     console.log(c.green(`Scope agregado al PBI #${out.item.id}: ${out.allowedPath}`));
@@ -236,14 +268,14 @@ function runtimeScope({ flags, pos }) {
     return;
   }
   console.error(c.red('uso: capa scope <add|list>'));
-  process.exit(1);
+  return void (process.exitCode = 1);
 }
 
 function runtimeFinding({ flags, pos }) {
   const sub = pos[0];
   if (sub === 'add') {
     const title = pos.slice(1).join(' ').trim();
-    if (!title) { console.error(c.red('uso: capa finding add "titulo" [--description "..."] [--outside] [--action record]')); process.exit(1); }
+    if (!title) { console.error(c.red('uso: capa finding add "titulo" [--description "..."] [--outside] [--action record]')); return void (process.exitCode = 1); }
     const out = findings.add({ root: process.cwd(), title, description: flags.description || null, belongs: !Boolean(flags.outside), action: flags.action || 'record' });
     if (!out.ok) return console.log(c.yellow(out.message));
     console.log(c.green(`Finding #${out.findingId} registrado en PBI #${out.item.id}: ${out.title}`));
@@ -259,14 +291,14 @@ function runtimeFinding({ flags, pos }) {
     return;
   }
   console.error(c.red('uso: capa finding <add|list>'));
-  process.exit(1);
+  return void (process.exitCode = 1);
 }
 
 function runtimeEvidence({ flags, pos }) {
   const sub = pos[0];
   if (sub === 'add') {
     const claim = pos.slice(1).join(' ').trim();
-    if (!claim) { console.error(c.red('uso: capa evidence add "claim" [--classification VERIFIED|PARTIAL|ASSUMPTION|UNKNOWN] [--type test] [--file ruta] [--command "..."]')); process.exit(1); }
+    if (!claim) { console.error(c.red('uso: capa evidence add "claim" [--classification VERIFIED|PARTIAL|ASSUMPTION|UNKNOWN] [--type test] [--file ruta] [--command "..."]')); return void (process.exitCode = 1); }
     const out = evidence.add({ root: process.cwd(), claim, classification: flags.classification || flags.class || 'UNKNOWN', sourceType: flags.type || null, filePath: flags.file || null, symbol: flags.symbol || null, command: flags.command || null, resultSummary: flags.result || flags.summary || null, confidence: flags.confidence || null });
     if (!out.ok) return console.log(c.yellow(out.message));
     console.log(c.green(`Evidence #${out.evidenceId} registrada en PBI #${out.item.id}`));
@@ -282,7 +314,7 @@ function runtimeEvidence({ flags, pos }) {
     return;
   }
   console.error(c.red('uso: capa evidence <add|list>'));
-  process.exit(1);
+  return void (process.exitCode = 1);
 }
 
 function runtimeTest({ flags, pos }) {
@@ -302,7 +334,7 @@ function runtimeTest({ flags, pos }) {
     return;
   }
   console.error(c.red('uso: capa test <add|list>'));
-  process.exit(1);
+  return void (process.exitCode = 1);
 }
 
 function runtimeReview({ flags, pos }) {
@@ -322,7 +354,7 @@ function runtimeReview({ flags, pos }) {
     return;
   }
   console.error(c.red('uso: capa review <add|list>'));
-  process.exit(1);
+  return void (process.exitCode = 1);
 }
 
 function runtimeClose({ flags, pos }) {
@@ -333,7 +365,7 @@ function runtimeClose({ flags, pos }) {
       console.log(c.red('CAPA BLOCK'));
       if (out.item) console.log(`PBI: #${out.item.id} ${out.item.title}`);
       for (const blocker of out.blockers) console.log(`- ${blocker}`);
-      process.exit(2);
+      return void (process.exitCode = 2);
     }
     console.log(c.green('CAPA PBI CLOSED'));
     console.log(`PBI: #${out.item.id} ${out.item.title}`);
@@ -351,7 +383,7 @@ function runtimeClose({ flags, pos }) {
     return;
   }
   console.error(c.red('uso: capa cerrar <pbi|sprint> [--summary "..."]'));
-  process.exit(1);
+  return void (process.exitCode = 1);
 }
 
 function help() {
@@ -366,7 +398,8 @@ ${c.bold('Runtime DB-first:')}
   ${c.cyan('completar')} [--status ok]        registra cierre de transición
   ${c.cyan('bloquear')} "motivo"              bloquea PBI activo
   ${c.cyan('backlog')} <list|add|show|activate|cancel|task> gestiona backlog, PBIs y tareas
-  ${c.cyan('guard')} <acción> [--file ruta]   valida si una acción está permitida
+  ${c.cyan('guard')} <acción> [--file ruta] [--manifest]  valida si una acción está permitida (--manifest = modo dossier)
+  ${c.cyan('focus')} <ADR> <objetivo>         declara el objetivo manifest en foco (gate de edición modo-manifest)
   ${c.cyan('scope')} <add|list>               administra alcance permitido
   ${c.cyan('finding')} <add|list>             registra hallazgos laterales
   ${c.cyan('evidence')} <add|list>            registra evidencia verificable
@@ -386,6 +419,7 @@ ${c.bold('Legacy dossier:')}
   ${c.cyan('init')}                           config + capa/ (exige graphify)
   ${c.cyan('vision')} <ADR-XXXX>              carpeta-visión de un ADR  [--title "..."]
   ${c.cyan('new')} <ADR-XXXX> --objetivo S    1 CAPA bajo la visión  [--title "..."] [--route a,b]
+  ${c.cyan('route')} <ADR-XXXX> --objetivo S  lee o redefine la ruta de un CAPA existente  [--route a,b]
   ${c.cyan('thread')} <ADR-XXXX> --objetivo S activa graphify sobre la ruta e hila dependencias
   ${c.cyan('progress')} <ADR> --objetivo S    marca qué llevo/qué falta  [--done|--undone <sliceId>]
   ${c.cyan('govern')} <ADR>                   decisiones de gobernanza  [--sign|--reject DP-x]
@@ -409,6 +443,7 @@ function main() {
     case 'bloquear': case 'block': return runtimeBlock({ pos });
     case 'backlog': return runtimeBacklog({ flags, pos });
     case 'guard': return runtimeGuard({ flags, pos });
+    case 'focus': return runtimeFocus({ flags, pos });
     case 'scope': return runtimeScope({ flags, pos });
     case 'finding': return runtimeFinding({ flags, pos });
     case 'evidence': return runtimeEvidence({ flags, pos });
@@ -418,6 +453,7 @@ function main() {
     case 'init': return init({ root: process.cwd(), dossierDir: flags.dir || 'capa' });
     case 'vision': { const { root, config } = loadConfig(); return vision({ root, config, adr: pos[0], title: flags.title, slug: flags.slug }); }
     case 'new': { const { root, config } = loadConfig(); return newCapa({ root, config, adr: pos[0], objetivo: flags.objetivo, title: flags.title, route: flags.route, frontend: !!flags.frontend }); }
+    case 'route': { const { root, config } = loadConfig(); return setRoute({ root, config, adr: pos[0], objetivo: flags.objetivo, route: flags.route }); }
     case 'thread': { const { root, config } = loadConfig(); return runThread({ root, config, adr: pos[0], objetivo: flags.objetivo }); }
     case 'progress': { const { root, config } = loadConfig(); return runProgress({ root, config, adr: pos[0], objetivo: flags.objetivo, done: flags.done, undone: flags.undone }); }
     case 'govern': { const { root, config } = loadConfig(); return runGovern({ root, config, adr: pos[0], sign: flags.sign, reject: flags.reject }); }
@@ -429,8 +465,14 @@ function main() {
     case 'uninstall': return uninstall({ platform: flags.platform || 'claude', global: !!flags.global, root: process.cwd() });
     case 'version': case '--version': case '-v': return console.log(pkg.version);
     case undefined: case 'help': case '--help': case '-h': return help();
-    default: console.error(c.red(`comando desconocido: ${cmd}`)); help(); process.exit(1);
+    default: console.error(c.red(`comando desconocido: ${cmd}`)); help(); return void (process.exitCode = 1);
   }
 }
 
-main();
+try {
+  main();
+} catch (e) {
+  // die() throws CapaExit to abort; exitCode is already set. Real errors
+  // re-throw and exit naturally (no process.exit => no native-teardown segv).
+  if (!(e && e.__capaExit)) throw e;
+}

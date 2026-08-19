@@ -4,6 +4,21 @@ CAPA is the source of truth for this repository.
 
 Use CAPA when the user asks for `/capa`, `vamos con lo que sigue`, `next step`, `continue`, `cerrar PBI`, `cerrar sprint`, or anything that implies agent-controlled coding workflow.
 
+## Two runtimes — pick the right one (READ FIRST)
+
+CAPA ships **two** execution models. They do NOT mix. Confusing them is the #1 source of "the agent said it used CAPA and did nothing".
+
+1. **Manifest / dossier mode** — the one **UBP uses**.
+   - State lives in `capa/ADR-*/<objetivo>/manifest.json`: two-axis `status` (`decision` × `implementation`) + 5 `dimensions` + `evidence[]` + `decisions[]`.
+   - Gate: `capa doctor`. Board: `capa dashboard` → `capa-out/dashboard.html`.
+   - This is what `/capa` (the skill in `skill/SKILL.md`) drives. Objectives are NOT advanced with `capa go`.
+
+2. **PBI state-machine mode** — the DB-first alpha runtime.
+   - State lives in `.capa/capa.db` (SQLite): `NEW→DISCOVERY→VIABILITY→CONTEXT→SCOPE→GATE→APPROVAL→IMPLEMENT→BUILD→TEST→CODE_REVIEW→DONE`, advanced one transition at a time with `capa go`/`siguiente`, guarded by `capa-agent-edit-guard`.
+   - Everything below in this file (`iniciar`, `estado`, `scope add`, `cerrar pbi`, the mandatory edit guard) describes **this** mode.
+
+**Rule:** in UBP, drive objectives through **manifest mode** (`capa status`/`doctor`/manifest, per `skill/SKILL.md`). Use PBI mode only when explicitly running the DB-first runtime. The commands documented below are the PBI-mode adapter.
+
 ## Product Owner behavior
 
 When CAPA is active, the agent must behave like a practical Product Owner for the final user.

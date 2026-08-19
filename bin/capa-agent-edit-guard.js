@@ -28,7 +28,7 @@ function main() {
     console.log('CAPA BLOCK');
     console.log('Motivo: missing file path for agent edit guard');
     console.log('Uso: node bin/capa-agent-edit-guard.js --file <path>');
-    process.exit(2);
+    return void (process.exitCode = 2);
   }
 
   let blocked = false;
@@ -38,7 +38,7 @@ function main() {
     if (!result.allowed) blocked = true;
   }
 
-  if (blocked) process.exit(2);
+  if (blocked) return void (process.exitCode = 2);
 }
 
 main();

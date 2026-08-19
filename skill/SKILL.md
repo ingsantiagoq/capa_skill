@@ -9,57 +9,80 @@ description: Aterriza UN objetivo/iteración/módulo en un CAPA (Contexto·Alcan
 > objetivo = 1 CAPA**: la especificación de UN paso, tan detallada que el agente no improvisa nada.
 > La fuente única de verdad es el código; CAPA lo aterriza y lo ancla (anti-teatro · ADR-0017).
 
+## Runtime único (no confundir)
+
+**En UBP CAPA corre sobre MANIFESTS, no sobre la máquina de 12 nodos.**
+- **Motor real:** `capa/ADR-*/<objetivo>/manifest.json` — `lifecycle` (wip/done) + `status` de **dos ejes**
+  (`decision`: PROPUESTA/ACEPTADA · `implementation`: NONE/PARTIAL/E2E-VERIFIED) + 5 `dimensions` + `evidence[]` + `decisions[]`.
+- **Gate real:** `capa doctor` (E4 anclas · E9 evidencia · E12 palanca · E13 dossier…).
+- **Tablero:** `capa dashboard` → `capa-out/dashboard.html` (estático; único; nunca fabricar HTML a mano).
+- ⚠️ La máquina de estados `NEW→…→DONE` con `capa go`/`.capa/capa.db` es el **runtime alfa del smoke** — **NO se usa en UBP**. No dirijas objetivos por ahí.
+
 ## Reglas operativas (obligatorias)
 
+- **Trabajar A TRAVÉS de CAPA, no alrededor.** El hilo vive en `capa status`/`doctor`/manifest desde el arranque — **NO** en un todo-list del harness (`TaskCreate`). Descubrir afuera está bien; **entregar afuera, no**.
 - **Una duda a la vez**; no avanzar sin cerrar la previa.
 - Cada slice sale con **código + pruebas mínimas + ejemplos Swagger** en el mismo PR.
 - **Progreso con evidencia** reproducible. Cobertura incremental 20→40→60→80.
 - **Sello anti-teatro:** todo claim cita un nodo graphify (existe) + un comando (corre verde). Si falta → MODO BLOQUEO.
+- **Si `capa doctor` bloquea → PARAR.** No rodear el guard, no maquillar el eje. Se arregla la causa o se declara PARTIAL honesto.
 
-## Flujo cuando te invocan (en este orden, una cosa a la vez)
+## Arranque OBLIGATORIO de sesión (antes de tocar nada)
 
-### 1. Preguntar QUÉ se quiere hacer
-Pedí el **objetivo concreto** (no el dominio entero): "¿qué paso aterrizamos?". Identificá a qué **ADR-visión**
-pertenece (o proponé crearla con `capa vision`). Confirmá el objetivo en una frase antes de seguir.
+Sin esto no hay edición. Es el gate que impide "confío que usás CAPA y no hacés nada":
+1. `graphify update .` (desde `btw-ubp-backend/`) — orienta y evita anclas fantasma.
+2. `capa status` + `capa doctor` — ver estado real y bloqueos vivos.
+3. **Nombrar el objetivo** al que pertenece TODO lo que voy a hacer (buscar el existente en `capa/ADR-*/` antes de crear).
+   Ningún `Edit`/`Write` fuera del `route` de un objetivo declarado.
 
-### 2. Armar el PANEL de expertos
-Proponé al usuario el panel para ESTE objetivo (qué lentes: dominio, costeo, fiscal, DBA, seguridad,
-frontend…) y **pedí confirmación**. El panel define el "qué y cómo" al detalle. Comando base: `capa panel <ADR> --objetivo <slug> --json`.
+## Los 7 pasos del objetivo (en orden, una transición a la vez)
 
-### 3. Crear el CAPA y activar graphify sobre la ruta
-- `capa new <ADR> --objetivo <slug> --route <paths>` (la ruta = carpetas que toca el objetivo).
-- `capa thread <ADR> --objetivo <slug>` → activa graphify sobre la ruta e **hila las dependencias**
-  (entrantes/salientes). Cada "depende de" debe ser un ancla declarada o un CAPA previo. Eso fuerza coherencia.
+Cada paso cierra con su comando+gate antes del siguiente:
 
-### 4. Documentar al EXTREMO (el panel redacta, anclado a graphify)
-Cada experto redacta SU dimensión citando `node id` (`graphify explain/query`), nunca lectura cruda:
-- **CONTEXTO** — el paso exacto (secuencia numerada), la invariante numérica, reglas 1.6, las trampas conocidas.
+1. **DISCOVERY** — orientar con graphify; registrar evidencia si útil. No editar.
+2. **PLAN/PANEL** — proponer el panel de expertos (lentes: dominio, fiscal, DBA, seguridad, frontend…) y confirmar. Plan mínimo. No editar.
+3. **SCOPE** — `capa new <ADR> --objetivo <slug> --route <paths>` + `capa thread` (hila dependencias entrantes/salientes). Define el `route`; nada se edita fuera de él.
+4. **IMPLEMENT** — editar SOLO paths del `route`, tras pasar el edit-guard. Cada dimensión redactada citando `node id` (graphify), nunca lectura cruda.
+5. **TEST** — correr/registrar tests + evidencia que **EJERCITA** (`kind: api`/`e2e-ui` cuentan para E2E; `gate`/`integration`/`unit` NO).
+6. **CODE_REVIEW** — verificación adversarial (`backend-reviewer`/`frontend-reviewer`) refuta cada claim; lo que no sobrevive baja el eje (E2E-VERIFIED→PARTIAL→NONE).
+7. **DONE** — `capa doctor --adr <ADR>` verde (0 bloqueos) + gate `/ubp-validate-story`. Recién ahí se cierra el PR.
+
+## Las 5 dimensiones (se llenan en IMPLEMENT, ancladas a graphify)
+
+Esqueleto vacío = bloqueo E13. Cada experto redacta la suya citando `node id`:
+- **CONTEXTO** — el paso exacto (secuencia numerada), la invariante numérica, reglas 1.6, trampas conocidas.
 - **ALCANCE** — slices exactos de ESTE objetivo; lo demás va a §exclusiones (no "que el agente complete").
 - **PROGRESO** — tabla viva; cada fila un comando reproducible (`manifest.evidence[]`).
 - **ASEGURAMIENTO** — invariante → assertion exacta → test → ancla; estado 2-ejes.
 - **PODER** — decisiones de firma que gobiernan este paso (`manifest.decisions[]`).
 
-### 5. Verificación adversarial + gate
-- Verificador (reusar `backend-reviewer`/`frontend-reviewer`): refuta cada claim contra el código. Lo que no
-  sobrevive baja el eje (E2E-VERIFIED→PARTIAL→NONE).
-- Gate: `capa doctor --adr <ADR>` verde (0 bloqueos). Si rojo, no se cierra el PR.
+## Cierre TERSO — mold obligatorio (campos de Codex, en este orden)
+
+Toda entrega se reporta así. NO párrafos narrativos:
+1. **Objetivo:** aterrizar `<slug>` (una frase).
+2. **Lecciones que aplican:** L0xx/L0yy — reglas concretas del paso.
+3. **Veredicto:** GO | PARTIAL | NONE + estado de implementación.
+4. **Quedó definido:** bullets de decisiones de diseño.
+5. **Validación:** `capa thread` (N nodos/M aristas) · `capa doctor` (objetivo OK, 0 bloqueos) · `git diff --check` (limpio) · Rama · estado commit/push.
+6. **Dossier:** link al CAPA (`capa/ADR-*/<slug>`).
+7. **Falta una firma de diseño:** `D-<slug>` — decisión PODER pendiente (si aplica).
 
 ## El equipo (skills/agentes que ejecutan cada CAPA)
 
 CAPA orquesta; estas skills hacen el trabajo. Encadenalas según el objetivo:
-- **`ubp-bootstrap`** — cargar estado al arrancar la sesión.
 - **`new-microservice` / `new-entity` / `new-proto`** — backend del slice (ADR-0002, gRPC-only).
 - **`new-page` / `frontend-angular`** — el Contrato Front del objetivo.
-- **Diseño (CAPA de front · obligatorio · E10):** `emil-design-eng` (polish/animación · Emil Kowalski) ·
-  `impeccable` (audit/critique/polish · 23 comandos) · `design-taste-frontend` (dirección de diseño anti-slop).
-  Un CAPA `frontend:true` DEBE invocarlas para la apariencia completa; `capa doctor` bloquea si no se declaran.
-- **`backend-reviewer` / `frontend-reviewer`** — la verificación adversarial del paso 5.
+- **Diseño (CAPA de front · obligatorio · E10):** `emil-design-eng` · `impeccable` · `design-taste-frontend`.
+  Un CAPA `frontend:true` DEBE invocarlas; `capa doctor` bloquea si no se declaran.
+- **`backend-reviewer` / `frontend-reviewer`** — la verificación adversarial del paso 6.
 - **`ubp-validate-story` / `ubp-sonar-check`** — el gate de calidad antes de cerrar.
-- **`ubp-handoff`** — entregar el CAPA cerrado a la próxima sesión (git + resumen, sin KB).
 
 ## Anti-patrones (no hacer)
 
+- ❌ Decir "usé CAPA" sin manifest tocado, sin doctor, con cierre narrativo. Eso es trabajar **alrededor**.
+- ❌ Conducir el avance con `TaskCreate`/todo-list del harness — pista paralela que compite con CAPA.
 - ❌ Un CAPA por ADR. Es por **objetivo**. El ADR es la visión.
 - ❌ Documentar el dominio entero en un CAPA. Un paso, al extremo.
 - ❌ Escribir prosa sin ancla a código, o marcar verde sin comando.
 - ❌ Leer archivos crudos antes de orientarte con graphify (y de hilar la ruta con `capa thread`).
+- ❌ Dirigir objetivos por el runtime de 12 nodos (`capa go`) en UBP.
