@@ -76,11 +76,15 @@ docs/legacy.md
 
 ## Instalación local
 
+> **¿PC nuevo? Instalá TODO el stack** (CAPA + graphify + las 11 skills globales +
+> hooks) siguiendo **[INSTALL.md](INSTALL.md)**. Lo de abajo es solo CAPA.
+
 Requisitos:
 
 ```text
 Node.js >= 18
 npm
+graphify   (dependencia dura — ver INSTALL.md §2)
 ```
 
 Instalación desde el repositorio:
@@ -98,6 +102,9 @@ Validar instalación:
 capa version
 npm test
 ```
+
+Las **skills globales** de Claude Code viajan en este repo bajo `skills-global/`;
+se copian a `~/.claude/skills/` (ver [INSTALL.md](INSTALL.md) §4).
 
 ---
 
