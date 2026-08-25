@@ -62,10 +62,27 @@ r = cli(['guard', 'edit', '--file', 'src/other.js', '--manifest']);
 assert.equal(r.status, 2, 'archivo fuera del route debe bloquear');
 assert.match(r.stdout, /fuera del route/);
 
+// 5c. El dossier de OTRO objetivo => BLOCK. La excepción del dossier propio no
+//     puede convertirse en "todo capa/ es editable".
+const otroDir = path.join(root, 'capa', 'ADR-0001-x', 'obj-b');
+fs.mkdirSync(otroDir, { recursive: true });
+fs.writeFileSync(path.join(otroDir, 'manifest.json'), JSON.stringify({
+  parentAdr: 'ADR-0001-x', objetivo: 'obj-b', lifecycle: 'wip', route: ['src/b.js'],
+}, null, 2));
+r = cli(['guard', 'edit', '--file', 'capa/ADR-0001-x/obj-b/CONTEXTO.md', '--manifest']);
+assert.equal(r.status, 2, 'el dossier de otro objetivo debe bloquear');
+assert.match(r.stdout, /fuera del route/);
+
 // 6. Closed objective (lifecycle=done) => BLOCK even for in-route files
 writeManifest({ lifecycle: 'done' });
 r = cli(['guard', 'edit', '--file', 'src/a.js', '--manifest']);
 assert.equal(r.status, 2, 'objetivo cerrado debe bloquear');
+assert.match(r.stdout, /cerrado/);
+
+// 6b. Cerrado => ni siquiera su propio dossier. El chequeo de lifecycle va antes
+//     que la excepción del dossier propio: un objetivo cerrado no se reescribe.
+r = cli(['guard', 'edit', '--file', 'capa/ADR-0001-x/obj-a/PROGRESO.md', '--manifest']);
+assert.equal(r.status, 2, 'objetivo cerrado no debe permitir ni su dossier');
 assert.match(r.stdout, /cerrado/);
 writeManifest();
 
@@ -74,7 +91,23 @@ writeManifest({ route: [] });
 r = cli(['guard', 'edit', '--file', 'src/a.js', '--manifest']);
 assert.equal(r.status, 2, 'sin route debe bloquear');
 assert.match(r.stdout, /no declara `route`/);
+
+// 7b. …pero su PROPIO dossier sigue editable, incluso SIN route. Esta es la
+//     circularidad que el guard tenía: escribir el dossier exigía que la route se
+//     incluyera a sí misma, y arreglar la route exigía editar el manifest.json, que
+//     vive en esa misma carpeta. Un objetivo recién creado quedaba indocumentable.
+r = cli(['guard', 'edit', '--file', 'capa/ADR-0001-x/obj-a/CONTEXTO.md', '--manifest']);
+assert.equal(r.status, 0, 'el dossier propio debe permitirse aun sin route');
+assert.match(r.stdout, /CAPA ALLOW/);
+r = cli(['guard', 'edit', '--file', 'capa/ADR-0001-x/obj-a/manifest.json', '--manifest']);
+assert.equal(r.status, 0, 'el manifest propio debe permitirse para poder declarar la route');
+assert.match(r.stdout, /CAPA ALLOW/);
 writeManifest();
+
+// 7c. Con route declarada, el dossier propio sigue permitido sin estar en ella.
+r = cli(['guard', 'edit', '--file', 'capa/ADR-0001-x/obj-a/ALCANCE.md', '--manifest']);
+assert.equal(r.status, 0, 'el dossier propio no necesita estar en la route');
+assert.match(r.stdout, /CAPA ALLOW/);
 
 // 8. Clear focus => back to BLOCK
 r = cli(['focus', 'clear']);
