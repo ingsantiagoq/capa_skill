@@ -2,11 +2,11 @@
 
 // [E4] no es un callejón sin salida: dice la completación.
 //
-// Los ids de graphify son `<ruta>_<símbolo>`, y el error más común al escribir un ancla a mano es
-// quedarse con la primera mitad. Medido 2026-09-07 sobre el repo: de 399 anclas rotas, 122 son esa
-// truncadura exacta y 60 más resuelven con algún completado — casi la mitad de la «deriva» es un id
-// a medio escribir. Un bloqueo que sólo dice «no existe» obliga a redescubrir el formato leyendo el
-// graph.json; diciendo qué existe bajo ese prefijo, se arregla en un renglón.
+// graphify nombra un ARCHIVO y un SÍMBOLO con ids que se parecen (`…_isalesbyperiodservice` cuelga de
+// `…_isalesbyperiodservice`). El de archivo no es un contrato: cambió de esquema el 2026-09-06 y rompió
+// de golpe 113 anclas de 15 ADRs; el de símbolo quedó idéntico. Un bloqueo que sólo dice «no existe»
+// manda a buscar código que nunca se movió; diciendo qué existe bajo ese prefijo, se arregla en un
+// renglón — y lo que aparece ahí es justamente el símbolo que reemplaza al archivo renombrado.
 
 const assert = require('assert');
 const fs = require('fs');
