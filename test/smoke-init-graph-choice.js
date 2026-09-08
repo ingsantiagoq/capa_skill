@@ -109,8 +109,84 @@ function escribirGrafo(dir, nodes) {
   const { texto } = captura(() => runDoctor({ root, config, onlyAdr: ADR }));
 
   assert.ok(/cobertura 1\/1 rutas/.test(texto), `el marco está bien: la route casa:\n${texto.slice(0, 400)}`);
-  assert.ok(/0 de 30 anclas resuelven/.test(texto), `pero casi ninguna ancla resuelve y hay que decirlo:\n${texto.slice(-700)}`);
-  assert.ok(/otro espacio de nombres/.test(texto), `nombrando la causa, que NO es deriva:\n${texto.slice(-700)}`);
+  assert.ok(/0 de 30 anclas resuelven/.test(texto), `pero casi ninguna ancla resuelve y hay que decirlo:\n${texto.slice(-900)}`);
+  assert.ok(/espacios de nombres distintos/.test(texto), `nombrando la causa, que NO es deriva:\n${texto.slice(-900)}`);
+  assert.ok(/re-anclar los manifests/.test(texto), `y las DOS salidas, no sólo regenerar el grafo:\n${texto.slice(-900)}`);
+}
+
+// 4. EL DESASTRE PARCIAL — el que realmente ocurre. El umbral viejo era 5 %, así que sólo hablaba
+//    ante la catástrofe total (3d95ec95e: 1 ancla viva de 2448 = 0,04 %). Medido 2026-09-08 sobre el
+//    corpus real del checkout principal: 468 de 2463 anclas vivas = 19,0 %, con 1995 [E4] bloqueando
+//    — el desastre más grande que hay en la casa — y el aviso pasaba por debajo del umbral sin decir
+//    nada. Este caso reproduce esa proporción a escala: 6 de 30 anclas vivas = 20 %.
+{
+  const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'capa-ns-parcial-'));
+  const root = path.join(ws, 'backend');
+  const ADR = 'ADR-0011-contabilidad-gl';
+  const VIVAS = 6, TOTAL = 30;
+  const nodes = [];
+  for (let i = 0; i < TOTAL; i++) {
+    // Las primeras VIVAS anclan; el resto vive con el prefijo del repo, como en el caso real.
+    nodes.push({ id: i < VIVAS ? `ancla_${i}` : `backend::ancla_${i}`, source_file: `backend/ubp-ledger-service/src/F${i}.cs` });
+  }
+  escribirGrafo(path.join(ws, 'graphify-out'), nodes);
+  fs.mkdirSync(path.join(root, 'ubp-ledger-service', 'src'), { recursive: true });
+  for (let i = 0; i < TOTAL; i++) {
+    const d = path.join(root, 'capa', ADR, `obj-${i}`);
+    fs.mkdirSync(d, { recursive: true });
+    for (const dim of ['CONTEXTO', 'ALCANCE', 'PROGRESO', 'ASEGURAMIENTO', 'PODER']) {
+      fs.writeFileSync(path.join(d, `${dim}.md`), `# ${dim}\n`);
+    }
+    fs.writeFileSync(path.join(d, 'manifest.json'), JSON.stringify({
+      parentAdr: ADR, objetivo: `obj-${i}`, lifecycle: 'wip',
+      status: { decision: 'PROPUESTA', implementation: 'PARTIAL', verified_against: null },
+      route: ['ubp-ledger-service/src'], slices: [],
+      anchors: [{ id: `ancla_${i}`, label: `F${i}` }],
+      evidence: [], decisions: [],
+    }));
+  }
+  const config = { project: 'backend', dossierDir: 'capa', graph: '../graphify-out/graph.json' };
+  fs.writeFileSync(path.join(root, 'capa.config.json'), JSON.stringify(config));
+  const { texto } = captura(() => runDoctor({ root, config, onlyAdr: ADR }));
+
+  assert.ok(/6 de 30 anclas resuelven en este grafo \(20 %\)/.test(texto),
+    `20 % de anclas vivas tiene que disparar el aviso; con el umbral de 5 % pasaba mudo:\n${texto.slice(-900)}`);
+}
+
+// 5. Un corpus SANO no dispara el aviso. Medido en el worktree cc-sucursal-bodega contra el mismo
+//    archivo de grafo: 2295/2477 = 92,7 % vivas. El umbral (50 %) tiene que dejarlo pasar, o el aviso
+//    se vuelve ruido permanente y nadie lo lee.
+{
+  const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'capa-ns-sano-'));
+  const root = path.join(ws, 'backend');
+  const ADR = 'ADR-0011-contabilidad-gl';
+  const VIVAS = 28, TOTAL = 30; // 93,3 % — la proporción del corpus sano
+  const nodes = [];
+  for (let i = 0; i < TOTAL; i++) {
+    nodes.push({ id: i < VIVAS ? `ancla_${i}` : `backend::ancla_${i}`, source_file: `backend/ubp-ledger-service/src/F${i}.cs` });
+  }
+  escribirGrafo(path.join(ws, 'graphify-out'), nodes);
+  fs.mkdirSync(path.join(root, 'ubp-ledger-service', 'src'), { recursive: true });
+  for (let i = 0; i < TOTAL; i++) {
+    const d = path.join(root, 'capa', ADR, `obj-${i}`);
+    fs.mkdirSync(d, { recursive: true });
+    for (const dim of ['CONTEXTO', 'ALCANCE', 'PROGRESO', 'ASEGURAMIENTO', 'PODER']) {
+      fs.writeFileSync(path.join(d, `${dim}.md`), `# ${dim}\n`);
+    }
+    fs.writeFileSync(path.join(d, 'manifest.json'), JSON.stringify({
+      parentAdr: ADR, objetivo: `obj-${i}`, lifecycle: 'wip',
+      status: { decision: 'PROPUESTA', implementation: 'PARTIAL', verified_against: null },
+      route: ['ubp-ledger-service/src'], slices: [],
+      anchors: [{ id: `ancla_${i}`, label: `F${i}` }],
+      evidence: [], decisions: [],
+    }));
+  }
+  const config = { project: 'backend', dossierDir: 'capa', graph: '../graphify-out/graph.json' };
+  fs.writeFileSync(path.join(root, 'capa.config.json'), JSON.stringify(config));
+  const { texto } = captura(() => runDoctor({ root, config, onlyAdr: ADR }));
+
+  assert.ok(!/anclas resuelven en este grafo/.test(texto),
+    `93 % de anclas vivas es un corpus sano: el aviso no debe salir:\n${texto.slice(-900)}`);
 }
 
 console.log('Init graph choice (grafo del padre · espacio de nombres de los ids) smoke test OK');
