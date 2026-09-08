@@ -112,7 +112,9 @@ function escenario() {
   const delDoctor = captura(() => runDoctor({ root, config: conConfigLocal }));
   const delThread = captura(() => runThread({ root, config: conConfigLocal, adr: ADR, objetivo: 'cubierto' }));
 
-  const linea = /capa\.config\.json → graph \("graphify-out\/graph\.json"\) cubre 0\/2 rutas; se usa [^\n]*graph\.json \(1\/2 rutas\), que cubre más/;
+  // El del config cubre 0/2: no llega al filtro de marco, así que ni siquiera compite — y el aviso lo
+  // dice con esas palabras («que sí enmarca este árbol») en vez de insinuar que perdió una comparación.
+  const linea = /capa\.config\.json → graph \("graphify-out\/graph\.json"\) cubre 0\/2 rutas; se usa [^\n]*graph\.json \(1\/2 rutas\), que sí enmarca este árbol/;
   assert.ok(linea.test(delDoctor), `el doctor ya lo decía:\n${delDoctor}`);
   assert.ok(linea.test(delThread), `y ahora thread dice exactamente lo mismo:\n${delThread}`);
   void ws;
