@@ -17,7 +17,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const { chooseGraph } = require('../lib/graph');
+const { chooseGraph, graphFrameOffset } = require('../lib/graph');
 const { runDoctor, lintCapa } = require('../lib/doctor');
 
 const ADR = 'ADR-0011-contabilidad-gl';
@@ -132,6 +132,43 @@ function captura(fn) {
   const conOffset = lintCapa(dossier, graph, null, root, { routeOffset: 'btw-ubp-backend' });
   assert.strictEqual(conOffset.filter((f) => f.code === 'E8' && f.sev === 'BLOCKER').length, 0,
     'con el marco del grafo, la misma route casa');
+}
+
+// 5. `graphify-out` como SYMLINK al del checkout principal — la forma real de un bundle de worktrees.
+//    El marco tiene que salir del ENLACE (la carpeta del worktree), no del realpath: resolviendo el
+//    enlace, `path.relative` contra la raíz CAPA del worktree arranca con `..`, el offset sale null y
+//    todo el mecanismo de marco queda muerto. Medido en cc-sucursal-bodega: los DOS candidatos daban
+//    null, así que `routeCandidatesInFrame` degeneraba en `routeCandidates`.
+{
+  const principal = fs.mkdtempSync(path.join(os.tmpdir(), 'capa-frame-main-'));
+  writeGraph(path.join(principal, 'graphify-out'), [`btw-ubp-backend/${ROUTE}/JournalEntry.cs`]);
+
+  // El worktree se llama distinto que el repo dentro del grafo: es lo que `routeCandidates` no
+  // puede adivinar por el nombre de la carpeta.
+  const wt = fs.mkdtempSync(path.join(os.tmpdir(), 'capa-frame-wt-'));
+  fs.symlinkSync(path.join(principal, 'graphify-out'), path.join(wt, 'graphify-out'), 'dir');
+  const root = path.join(wt, 'cc-sucursal-bodega');
+  const dossier = path.join(root, 'capa', ADR, OBJ);
+  fs.mkdirSync(dossier, { recursive: true });
+  const config = { project: 'cc-sucursal-bodega', dossierDir: 'capa', graph: '../graphify-out/graph.json' };
+  fs.writeFileSync(path.join(root, 'capa.config.json'), JSON.stringify(config));
+  for (const d of ['CONTEXTO', 'ALCANCE', 'PROGRESO', 'ASEGURAMIENTO', 'PODER']) {
+    fs.writeFileSync(path.join(dossier, `${d}.md`), `# ${d}\n`);
+  }
+  fs.writeFileSync(path.join(dossier, 'manifest.json'), JSON.stringify({
+    parentAdr: 'ADR-0011', objetivo: OBJ, lifecycle: 'wip',
+    status: { decision: 'PROPUESTA', implementation: 'NONE', verified_against: null },
+    route: [ROUTE], slices: [], anchors: [], evidence: [], decisions: [],
+  }));
+
+  const graphPath = path.join(root, '..', 'graphify-out', 'graph.json');
+  assert.strictEqual(graphFrameOffset(graphPath, root), 'cc-sucursal-bodega',
+    'el marco sale del enlace (la carpeta del worktree), no del realpath del checkout principal');
+
+  // La route sólo casa por el offset: el grafo la indexa bajo `btw-ubp-backend/` y la carpeta se
+  // llama `cc-sucursal-bodega/`, así que `routeCandidates` genera el prefijo equivocado.
+  const choice = chooseGraph({ root, configGraph: config.graph, routeEntries: [ROUTE] });
+  assert.strictEqual(choice.offset, 'cc-sucursal-bodega', `offset del marco: ${choice.offset}`);
 }
 
 console.log('Graph frame (marco del grafo ↔ rutas de los CAPA) smoke test OK');
