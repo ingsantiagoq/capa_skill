@@ -121,6 +121,43 @@ function captura(fn) {
   assert.ok(!code, `exit ${code}`);
 }
 
+// 3b. REGRESIÓN del propio arreglo: un candidato SIN `manifest.json` hermano no es peor que uno
+//     medible con cobertura CERO. Montaje: el grafo del config es el BUENO pero le falta el índice
+//     (grafo viejo o copiado a mano) y convive con un `../graphify-out` ajeno que sí lo tiene. El
+//     ajeno ganaba la medición con 0/1, el veredicto salía 'mismatch' y el doctor abortaba con exit 2
+//     sin correr — un caso que ANDABA antes de que el grafo se eligiera por cobertura.
+{
+  const { ws, root, config } = scaffold({ localIndexa: true });
+  fs.rmSync(path.join(root, 'graphify-out', 'manifest.json'));           // el bueno, sin índice
+  writeGraph(path.join(ws, 'graphify-out'), ['otro-arbol/Nada.cs']);     // el ajeno, medible en 0
+
+  const choice = chooseGraph({ root, configGraph: config.graph, routeEntries: [ROUTE] });
+  assert.strictEqual(choice.verdict, 'unmeasured', 'no se puede pesar ≠ pesa cero');
+  assert.strictEqual(choice.path, path.join(root, 'graphify-out', 'graph.json'),
+    'se cae al candidato no medible de mayor prioridad (el del config), no al ajeno que mide 0');
+  assert.ok(choice.bestMeasured && choice.bestMeasured.covered === 0,
+    'se conserva lo que sí se pudo pesar para poder explicar el fallback');
+
+  const { texto, code } = captura(() => runDoctor({ root, config, onlyAdr: ADR }));
+  assert.ok(!/MARCO EQUIVOCADO/.test(texto), `no debe abortar: el grafo del config puede ser el correcto:\n${texto}`);
+  assert.ok(!/✗ \[E8\]/.test(texto), `y con él la route casa, así que no hay E8:\n${texto}`);
+  assert.ok(/ningún grafo con manifest\.json hermano cubre/.test(texto), `pero debe AVISAR el fallback:\n${texto}`);
+  assert.ok(!code, `el doctor tiene que correr (exit ${code})`);
+}
+
+// 3c. Cuando SÍ se aborta por marco equivocado y al grafo del config le falta el índice hermano, la
+//     causa se dice en la Acción: `graphify update .` sobre el árbol equivocado no arregla nada.
+{
+  const { ws, root, config } = scaffold({ localIndexa: false });
+  fs.rmSync(path.join(root, 'graphify-out', 'manifest.json'));
+  fs.rmSync(path.join(ws, 'graphify-out'), { recursive: true, force: true });
+  const { texto, code } = captura(() => runDoctor({ root, config, onlyAdr: ADR }));
+  // Único candidato y no medible ⇒ 'unmeasured', que es lo correcto: no hay con qué comparar.
+  assert.ok(!/MARCO EQUIVOCADO/.test(texto), `con un solo candidato no medible no hay veredicto de marco:\n${texto}`);
+  assert.strictEqual(code, 1, 'corre y bloquea por el E8 real (la route no está ni en disco ni en ese grafo)');
+  assert.ok(/✗ \[E8\]/.test(texto), `el hallazgo real sí sale:\n${texto}`);
+}
+
 // 4. El offset del marco casa la route aunque la carpeta raíz se llame distinto que en el grafo
 //    (worktree `cc-sucursal-bodega/` con el grafo que la indexa como `btw-ubp-backend/`): es el caso
 //    que `routeCandidates` no puede resolver porque adivina el prefijo por el nombre de la carpeta.
