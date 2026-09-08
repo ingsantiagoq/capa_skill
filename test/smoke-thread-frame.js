@@ -70,12 +70,15 @@ function scaffold() {
   return { ws, root, config };
 }
 
+// `die()` deja `process.exitCode = 1` además de tirar el centinela: si no se restaura, ESTE test
+// termina en 1 aunque haya pasado, y en la cadena de `npm test` los que siguen no llegan a correr.
 function captura(fn) {
   const salida = [];
   const log = console.log, error = console.error;
+  const prev = process.exitCode === undefined ? 0 : process.exitCode;
   console.log = (...a) => salida.push(a.join(' '));
   console.error = (...a) => salida.push(a.join(' '));
-  try { fn(); } finally { console.log = log; console.error = error; }
+  try { fn(); } finally { console.log = log; console.error = error; process.exitCode = prev; }
   return salida.join('\n');
 }
 
