@@ -20,6 +20,7 @@ const focus = require('../lib/runtime/focus');
 const scope = require('../lib/runtime/scope');
 const findings = require('../lib/runtime/findings');
 const evidence = require('../lib/runtime/evidence');
+const verify = require('../lib/runtime/verify');
 const tests = require('../lib/runtime/tests');
 const reviews = require('../lib/runtime/reviews');
 const closure = require('../lib/runtime/closure');
@@ -294,6 +295,52 @@ function runtimeFinding({ flags, pos }) {
   return void (process.exitCode = 1);
 }
 
+// `capa verify ADR-XXXX --objetivo <slug>` — ejecuta la evidencia de UN objetivo y registra la
+// corrida. `--status` muestra lo registrado sin ejecutar nada.
+//
+// ⛔ Un objetivo por invocación, a propósito: son ~3289 comandos (dotnet test, playwright,
+// sonar-scanner) y prometer un barrido global sería el mismo teatro en otra capa.
+// ⛔ Nunca corre solo: ni en un hook, ni dentro de doctor/status/dashboard. Ejecuta comandos
+// escritos en un manifest, y eso pasa únicamente cuando alguien lo pide por su nombre.
+function runtimeVerify({ flags, pos }) {
+  const adr = pos[0];
+  const objetivo = flags.objetivo;
+  if (!objetivo) { console.error(c.red('uso: capa verify ADR-XXXX --objetivo <slug> [--status]')); return void (process.exitCode = 1); }
+  const { root, config } = loadConfig();
+
+  if (flags.status) {
+    const out = verify.status({ root, config, adr, objetivo });
+    if (!out.ok) { console.error(c.red(out.message)); return void (process.exitCode = 1); }
+    printVerifyState(out);
+    return;
+  }
+
+  const out = verify.run({ root, config, adr, objetivo });
+  if (!out.ok) { console.error(c.red(out.message)); return void (process.exitCode = 1); }
+  if (out.empty) {
+    console.log(c.yellow(`${out.objetivo}: sin evidencia ejecutable — no se registró ninguna corrida`));
+    console.log(c.dim('  un objetivo sin comandos no queda verde por no haber fallado'));
+    return;
+  }
+  for (const r of out.runs) {
+    const mark = r.exitCode === 0 ? c.green('verde') : c.red(`ROJO (exit ${r.exitCode})`);
+    console.log(`  ${mark}  ${r.command}`);
+  }
+  console.log(`${out.objetivo}: ${out.state === 'verde' ? c.green('VERDE') : c.red('ROJO')} @ ${out.commit ? out.commit.slice(0, 9) : 'sin commit'}`);
+  if (out.state !== 'verde') process.exitCode = 1;
+}
+
+function printVerifyState(out) {
+  for (const r of out.rows) {
+    if (r.state === 'sin-corrida') console.log(`  ${c.yellow('sin corrida')}  ${r.command}`);
+    else if (r.state === 'verde') console.log(`  ${c.green('verde')}  ${r.ranAt}${typeof r.behind === 'number' && r.behind > 0 ? c.yellow(` · ${r.behind} commit(s) atrás`) : ''}  ${r.command}`);
+    else console.log(`  ${c.red(`ROJO (exit ${r.exitCode})`)}  ${r.ranAt}  ${r.command}`);
+  }
+  if (!out.rows.length) return console.log(c.yellow('(sin evidencia ejecutable)'));
+  const label = out.state === 'verde' ? c.green('VERDE') : out.state === 'rojo' ? c.red('ROJO') : c.yellow('SIN CORRIDA');
+  console.log(`${out.objetivo}: ${label}${out.state === 'verde' && out.behind ? c.yellow(` · verde ${out.behind} commit(s) atrás`) : ''}`);
+}
+
 function runtimeEvidence({ flags, pos }) {
   const sub = pos[0];
   if (sub === 'add') {
@@ -446,6 +493,7 @@ function main() {
     case 'focus': return runtimeFocus({ flags, pos });
     case 'scope': return runtimeScope({ flags, pos });
     case 'finding': return runtimeFinding({ flags, pos });
+    case 'verify': return runtimeVerify({ flags, pos });
     case 'evidence': return runtimeEvidence({ flags, pos });
     case 'test': return runtimeTest({ flags, pos });
     case 'review': return runtimeReview({ flags, pos });

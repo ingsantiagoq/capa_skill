@@ -126,8 +126,32 @@ CREATE TABLE IF NOT EXISTS capa_closures (
   FOREIGN KEY (item_id) REFERENCES capa_items(id)
 );
 
+-- Corridas de la evidencia de un objetivo del dossier.
+--
+-- NO cuelga de capa_items: un objetivo del dossier (ADR + slug) no es un PBI del runtime, y la
+-- corrida tiene que poder existir sin que haya un item activo.
+--
+-- Las cuatro columnas que definen el objetivo (exit_code, ran_at, ran_at_commit, duration_ms) las
+-- escribe SOLO quien ejecutó el proceso. No hay ruta de código que las reciba por parámetro: una
+-- fecha que se puede declarar es un sello de goma con timestamp, y es peor que no tener fecha
+-- porque parece verificación.
+CREATE TABLE IF NOT EXISTS capa_evidence_runs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  adr TEXT NOT NULL,
+  objetivo TEXT NOT NULL,
+  command_hash TEXT NOT NULL,
+  command TEXT NOT NULL,
+  claim TEXT,
+  exit_code INTEGER NOT NULL,
+  ran_at TEXT NOT NULL,
+  ran_at_commit TEXT,
+  duration_ms INTEGER,
+  output_tail TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_capa_items_status ON capa_items(status);
 CREATE INDEX IF NOT EXISTS idx_capa_items_active ON capa_items(status, updated_at);
 CREATE INDEX IF NOT EXISTS idx_capa_tasks_item ON capa_tasks(item_id, position);
 CREATE INDEX IF NOT EXISTS idx_capa_progress_item ON capa_progress(item_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_capa_evidence_item ON capa_evidence(item_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_capa_evidence_runs_obj ON capa_evidence_runs(adr, objetivo, ran_at);
