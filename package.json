@@ -12,7 +12,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-dashboard-html.js && node test/smoke-presence-only.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-dp12-infra-proof.js && node test/smoke-agent-edit-guard.js && node test/smoke-guard-manifest.js && node test/smoke-budget.js && node test/smoke-real-flow.js && node test/smoke-backlog-management.js && node test/smoke-external-repo-init.js && node test/smoke-doctor-slice-visibility.js && node test/smoke-route-form-parity.js && node test/smoke-doctor-route-on-disk.js && node test/smoke-graph-frame.js && node test/smoke-graph-index-keys.js && node test/smoke-doctor-frame-suspect.js && node test/smoke-thread-frame.js && node test/smoke-init-graph-choice.js && node test/smoke-graph-choice-avisos.js && node test/smoke-graph-choice-parity.js",
+    "test": "node test/smoke-db-first.js && node test/smoke-guard.js && node test/smoke-hook.js && node test/smoke-scope.js && node test/smoke-evidence.js && node test/smoke-test-review.js && node test/smoke-close-pbi.js && node test/smoke-close-sprint.js && node test/smoke-dashboard-html.js && node test/smoke-presence-only.js && node test/smoke-agent-adapters.js && node test/smoke-next-requires-complete.js && node test/smoke-capa-go.js && node test/smoke-capa-go-alias.js && node test/smoke-state-exit-criteria.js && node test/smoke-dp12-infra-proof.js && node test/smoke-agent-edit-guard.js && node test/smoke-guard-manifest.js && node test/smoke-budget.js && node test/smoke-real-flow.js && node test/smoke-backlog-management.js && node test/smoke-external-repo-init.js && node test/smoke-doctor-slice-visibility.js && node test/smoke-route-form-parity.js && node test/smoke-doctor-route-on-disk.js && node test/smoke-graph-frame.js && node test/smoke-graph-index-keys.js && node test/smoke-doctor-frame-suspect.js && node test/smoke-thread-frame.js && node test/smoke-init-graph-choice.js && node test/smoke-graph-choice-avisos.js && node test/smoke-graph-choice-parity.js && node test/smoke-anchor-id-schemes.js",
     "test:db": "node test/smoke-db-first.js",
     "test:guard": "node test/smoke-guard.js",
     "test:hook": "node test/smoke-hook.js",
@@ -43,7 +43,8 @@
     "test:thread-frame": "node test/smoke-thread-frame.js",
     "test:init-graph": "node test/smoke-init-graph-choice.js",
     "test:avisos-grafo": "node test/smoke-graph-choice-avisos.js",
-    "test:paridad-grafo": "node test/smoke-graph-choice-parity.js"
+    "test:paridad-grafo": "node test/smoke-graph-choice-parity.js",
+    "test:anchor-ids": "node test/smoke-anchor-id-schemes.js"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1"
